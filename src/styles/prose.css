@@ -113,6 +113,43 @@
 }
 
 /*
+ * A transcluded note (`![[note]]` on its own line): the embedded body rendered
+ * inline as a card, with a link back to the source underneath. The card resets the
+ * prose vertical rhythm for its own children so the embedded content spaces itself.
+ */
+.prose .embed {
+  border: 1px solid var(--prose-rule);
+  border-left: 3px solid var(--prose-accent);
+  border-radius: 8px;
+  padding: 0.9em 1.1em;
+  background: var(--prose-code-bg);
+}
+.prose .embed-content > * + * {
+  margin-top: 0.9em;
+}
+.prose .embed-content > :first-child {
+  margin-top: 0;
+}
+/* Embedded headings shouldn't compete with the host note's outline. */
+.prose .embed-content :is(h1, h2, h3, h4, h5, h6) {
+  font-size: 1em;
+}
+.prose .embed-link {
+  display: inline-block;
+  margin-top: 0.8em;
+  font-size: 0.85em;
+  color: var(--prose-muted);
+  text-decoration: none;
+}
+.prose .embed-link::before {
+  content: "↪ ";
+}
+.prose .embed-link:hover {
+  color: var(--prose-accent);
+  text-decoration: underline;
+}
+
+/*
  * Embedded images (`![[image.png]]`, `![](…)`). Never overflow the column, keep the
  * aspect ratio when only a width is given, and centre so a narrow image isn't
  * stranded at the left edge. An explicit `width`/`height` from `![[img|300]]` still
