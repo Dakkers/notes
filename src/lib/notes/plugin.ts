@@ -90,12 +90,16 @@ export function demoNotes({ dir = ".demo", attachmentsDir }: DemoNotesOptions = 
   } {
     const { files, notes, resolve } = build();
     const attachments = buildAttachmentIndex(attachmentsPath);
-    const render = createNoteRenderer(resolve, attachments);
+    // Raw bodies keyed by slug, so `![[note]]` embeds can transclude one another.
+    const sources = new Map(
+      notes.map((note, i) => [note.slug, { raw: files[i].raw, title: note.title }]),
+    );
+    const render = createNoteRenderer(resolve, attachments, sources);
 
     const bodies: Record<string, HastRoot> = {};
     const footnotes: Record<string, HastRoot> = {};
     for (const [i, { raw }] of files.entries()) {
-      const rendered = render(raw, notes[i].title);
+      const rendered = render(raw, notes[i].title, notes[i].slug);
       bodies[notes[i].slug] = rendered.body;
       if (rendered.footnotes !== null) footnotes[notes[i].slug] = rendered.footnotes;
     }

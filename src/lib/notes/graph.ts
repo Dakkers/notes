@@ -16,7 +16,13 @@ export function buildResolver(notes: readonly Note[]): ResolveTarget {
   return (target) => {
     // Match the note part only, dropping any `#heading` / `#^block` suffix.
     const key = target.split(/[#^]/, 1)[0].trim().toLowerCase();
-    return key === "" ? null : (slugByRef.get(key) ?? null);
+    if (key === "") return null;
+    const direct = slugByRef.get(key);
+    if (direct !== undefined) return direct;
+    // Obsidian also resolves a path-qualified target (`[[Folder/Note]]`) by its
+    // basename, so `![[Embed/Caplin Ahead!]]` still finds the note "Caplin Ahead!".
+    const base = key.split(/[\\/]/).pop() ?? key;
+    return base === key ? null : (slugByRef.get(base) ?? null);
   };
 }
 
