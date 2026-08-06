@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+.output/
+.nitro/
+.tanstack/
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment (only *.local files are secret; committed .env files hold
+# non-secret defaults)
+.env.local
+.env.*.local
+
+# Vite
+.vite/
+
+# Cloudflare / Wrangler (local state, generated binding types)
+.wrangler/
+worker-configuration.d.ts
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+*.swp

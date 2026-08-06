@@ -1,0 +1,1 @@
+In poetry, **consonance** is a kind of rhyme where the shared sound between the two words is the _consonants_, not the vowels. Some simple examples include: `fudge / badge`, `smack / snake`, `cool / bowl`.

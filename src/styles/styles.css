@@ -1,0 +1,6 @@
+/*
+ * Baritone ships its compiled stylesheet as a single import — pull it in here so
+ * the design system's CSS enters the app in exactly one place. `__root.tsx` links
+ * the *bundled* output of this file.
+ */
+@import "@saintly-software/baritone/styles.css";

@@ -1,0 +1,266 @@
+/*
+ * Typography for rendered note bodies. The global reset (`reset.css`) strips all
+ * UA styling, so markdown output (`<h2>`, `<ul>`, `<code>`, …) arrives unstyled;
+ * this restores a readable reading rhythm, scoped to `.prose` so it never leaks
+ * into the app chrome. Loaded only on the note page route (see `notes.$slug.tsx`).
+ */
+
+.prose {
+  max-width: 42rem;
+  line-height: 1.65;
+  color: var(--prose-fg, #1c1c1e);
+  --prose-muted: #6b7280;
+  --prose-accent: #3f5bd9;
+  --prose-rule: #e4e4e7;
+  --prose-code-bg: #f2f2f4;
+}
+
+/* Vertical rhythm: every block gets top spacing, collapsed at the very start. */
+.prose > * + * {
+  margin-top: 0.9em;
+}
+/* The first block never carries a top margin — even the heading rules below. */
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.prose h1 {
+  font-size: 1.7rem;
+}
+.prose h2 {
+  font-size: 1.35rem;
+  margin-top: 1.8em;
+}
+.prose h3 {
+  font-size: 1.15rem;
+  margin-top: 1.5em;
+}
+.prose h4 {
+  font-size: 1rem;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+.prose ul {
+  list-style: disc;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose li + li {
+  margin-top: 0.3em;
+}
+/* Nested lists hug their parent item rather than taking full block spacing. */
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.3em;
+}
+
+.prose a {
+  color: var(--prose-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* Wikilink to a note that isn't in the vault: visible, but clearly not a link. */
+.prose .is-unresolved {
+  color: var(--prose-muted);
+  text-decoration: underline dashed;
+  text-underline-offset: 0.15em;
+  cursor: help;
+}
+
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--prose-code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.prose pre {
+  background: var(--prose-code-bg);
+  padding: 0.9em 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.prose pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+.prose blockquote {
+  border-left: 3px solid var(--prose-rule);
+  padding-left: 1em;
+  color: var(--prose-muted);
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--prose-rule);
+  margin-top: 1.6em;
+}
+
+/*
+ * Embedded images (`![[image.png]]`, `![](…)`). Never overflow the column, keep the
+ * aspect ratio when only a width is given, and centre so a narrow image isn't
+ * stranded at the left edge. An explicit `width`/`height` from `![[img|300]]` still
+ * applies, capped by `max-width` on small screens.
+ */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-inline: auto;
+  border-radius: 6px;
+}
+
+/*
+ * Each image is wrapped so the "view full size" button can float over its corner.
+ * The wrapper hugs the image (`width: fit-content`) and stays centred in the column.
+ */
+.prose .prose-image {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+.prose .prose-image img {
+  margin: 0;
+}
+
+/*
+ * Expand button. It's a Baritone `Button` (chrome, colours, focus ring, hover all
+ * come from the design system); these rules only place it over the image's corner
+ * and keep it hidden until the image is hovered or the button is focused.
+ */
+.prose-image-expand {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.prose-image:hover .prose-image-expand,
+.prose-image-expand:focus-visible {
+  opacity: 1;
+}
+/* Touch devices have no hover — keep the button visible there. */
+@media (hover: none) {
+  .prose-image-expand {
+    opacity: 1;
+  }
+}
+
+/*
+ * Full-size image viewer (portalled to <body>). Fixed backdrop that scrolls when the
+ * image is larger than the viewport, so the image renders at its natural dimensions.
+ * The scrim is a plain translucent black — Baritone has no overlay/scrim token.
+ */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.85);
+  overscroll-behavior: contain;
+}
+.lightbox-image {
+  /* Override `.prose img` caps: show the image at its intrinsic size. */
+  max-width: none;
+  height: auto;
+  margin: auto;
+  border-radius: 4px;
+  cursor: default;
+}
+/* Close button — a Baritone `Button`; these rules only pin it to the viewport corner. */
+.lightbox-close {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+}
+
+.prose strong {
+  font-weight: 600;
+}
+.prose em {
+  font-style: italic;
+}
+
+.prose sup {
+  font-size: 0.75em;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--prose-rule);
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+
+/*
+ * Footnote "References" list in the note side panel (see `#/components/NoteInfoPanel`).
+ * The panel sits outside `.prose`, so these rules are self-contained and inherit the
+ * panel's text colour rather than the prose palette. `list-style` is restored here
+ * because the global reset strips it (and flex layout is avoided — it would drop the
+ * `<li>` markers).
+ */
+.note-footnotes ol {
+  list-style: decimal;
+  padding-left: 1.3em;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.note-footnotes li + li {
+  margin-top: 0.4em;
+}
+.note-footnotes p {
+  margin: 0;
+}
+.note-footnotes a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+/* The ↩ back-to-citation link: quiet, and no underline. */
+.note-footnotes a[data-footnote-backref] {
+  margin-left: 0.35em;
+  text-decoration: none;
+  opacity: 0.6;
+}
+/* Citation to a source that isn't a note in the vault: visible, not a link. */
+.note-footnotes .is-unresolved {
+  text-decoration: underline dashed;
+  text-underline-offset: 0.15em;
+  opacity: 0.7;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose {
+    --prose-fg: #e6e6e8;
+    --prose-muted: #9ca3af;
+    --prose-accent: #8aa0ff;
+    --prose-rule: #3a3a3e;
+    --prose-code-bg: #26262a;
+  }
+}

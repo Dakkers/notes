@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "obsidian-site-v3",
+  // Matches the installed `workerd` (1.20260801.x). Bump alongside workerd upgrades.
+  "compatibility_date": "2026-08-01",
+  // TanStack Start's server entry uses `node:async_hooks` / `node:stream`, so the
+  // Workers runtime needs Node built-in compatibility.
+  "compatibility_flags": ["nodejs_compat"],
+  // A bare specifier resolved by `@cloudflare/vite-plugin`: `vite build` emits the
+  // real SSR worker to `dist/server/` (with a generated `wrangler.json`), and the
+  // client bundle + emitted `/attachments` to `dist/client/`, which is auto-served
+  // as static assets. Unmatched routes fall through to this worker for SSR.
+  "main": "@tanstack/react-start/server-entry",
+  "observability": {
+    "enabled": true,
+  },
+}
