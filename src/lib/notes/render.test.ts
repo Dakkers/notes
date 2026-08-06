@@ -78,6 +78,48 @@ describe("createNoteRenderer footnotes", () => {
   });
 });
 
+function hasKatex(tree: Root): boolean {
+  let found = false;
+  visit(tree, "element", (node) => {
+    if (Array.isArray(node.properties?.className) && node.properties.className.includes("katex")) {
+      found = true;
+    }
+  });
+  return found;
+}
+
+describe("createNoteRenderer math", () => {
+  it("renders inline `$…$` math to KaTeX markup", () => {
+    const { body } = render("The chain is $I - V$ here.\n", "Title");
+    expect(hasKatex(body)).toBe(true);
+    // The KaTeX span carries the rendered variable, not the raw `$` delimiters.
+    let text = "";
+    visit(body, "text", (node) => void (text += node.value));
+    expect(text).not.toContain("$");
+  });
+
+  it("renders display `$$…$$` math as a block", () => {
+    const { body } = render("$$\n\\frac{a}{b}\n$$\n", "Title");
+    let display = false;
+    visit(body, "element", (node) => {
+      if (
+        Array.isArray(node.properties?.className) &&
+        node.properties.className.includes("katex-display")
+      ) {
+        display = true;
+      }
+    });
+    expect(display).toBe(true);
+  });
+
+  it("leaves `$`-delimited math out of `[[wikilink]]` handling", () => {
+    // A `$…$` span that happens to contain brackets must not be parsed as a wikilink.
+    const { body } = render("Set $[a, b]$ notation.\n", "Title");
+    expect(hasKatex(body)).toBe(true);
+    expect(hrefs(body)).toHaveLength(0);
+  });
+});
+
 describe("createNoteRenderer images", () => {
   it("renders an `![[image.png]]` embed as an <img> pointing at the served asset", () => {
     const { body } = renderWithImages("Here: ![[Diagram.png]]\n", "Title");

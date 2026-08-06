@@ -7,6 +7,12 @@ import { NoteBody } from "../components/NoteBody";
 import { NoteInfoPanel } from "../components/NoteInfoPanel";
 import proseCss from "../styles/prose.css?url";
 
+// KaTeX's stylesheet for the math the build-time renderer bakes into note bodies
+// (see `#/lib/notes/render`). Imported as a module rather than via `?url` so Vite
+// rewrites its `url(fonts/…)` references and emits the KaTeX font files as hashed
+// assets; a bare `?url` link would leave those font paths dangling.
+import "katex/dist/katex.min.css";
+
 export const Route = createFileRoute("/notes/$slug")({
   head: ({ params }) => {
     const note = notes.find((candidate) => candidate.slug === params.slug);
