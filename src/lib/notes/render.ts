@@ -1,8 +1,10 @@
 import matter from "gray-matter";
 import type { Element, Root as HastRoot } from "hast";
 import type { Heading, Nodes, Paragraph, Root, RootContent } from "mdast";
+import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import { unified } from "unified";
@@ -339,13 +341,24 @@ export function createNoteRenderer(
   const remark = unified()
     .use(remarkParse)
     .use(remarkGfm)
+    // Parse `$…$` / `$$…$$` into math nodes before the text-node transforms below,
+    // so a `$`-delimited expression is never mistaken for prose or a `[[wikilink]]`.
+    .use(remarkMath)
     .use(remarkObsidianLinks, resolve, attachments)
     .use(remarkAttachmentImages, attachments)
     .use(remarkHeadings)
     .use(remarkNoteEmbeds, sources, renderInner);
 
   // mdast → hast, kept separate so it runs once over the fully-assembled tree.
-  const toHast = unified().use(remarkRehype, { allowDangerousHtml: true }).use(rehypeRaw);
+  // Render the math nodes to KaTeX HTML at build time (`.katex` markup + MathML),
+  // so no math library ships to the client — only KaTeX's stylesheet does, loaded
+  // on the note route (see `#/routes/notes.$slug`). After `rehypeRaw` so it also
+  // catches math inside any inline HTML the notes carry. Bad expressions render as
+  // an inline error rather than failing the build (KaTeX's `throwOnError: false`).
+  const toHast = unified()
+    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeRaw)
+    .use(rehypeKatex);
 
   function toMdast(raw: string, title: string, stack: string[]): { tree: Root; file: VFile } {
     const file = new VFile({ value: matter(raw).content, data: { title, embedStack: stack } });
