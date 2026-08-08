@@ -46,10 +46,17 @@ export function parseNote(fileName: string, raw: string): Note {
 
   const idMatch = ID_RE.exec(name);
   const id = idMatch ? idMatch[1] : null;
-  const title = idMatch ? idMatch[2] : name;
   const slug = id ?? slugify(name);
 
   const { data: frontmatter, content } = matter(raw);
+
+  // Title precedence: an explicit frontmatter `title` wins (Obsidian's own rule),
+  // letting a note carry characters its filename can't — e.g. quotes, which aren't
+  // valid in paths on some platforms. Otherwise fall back to the filename minus its
+  // Zettelkasten id prefix. The slug stays filename-derived, so URLs are unaffected.
+  const fileTitle = idMatch ? idMatch[2] : name;
+  const frontmatterTitle = typeof frontmatter.title === "string" ? frontmatter.title.trim() : "";
+  const title = frontmatterTitle !== "" ? frontmatterTitle : fileTitle;
   const tree = markdown.parse(content) as Root;
 
   let heading: string | null = null;

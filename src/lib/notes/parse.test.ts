@@ -17,6 +17,25 @@ describe("parseNote", () => {
     expect(note.title).toBe("belkin-2018");
   });
 
+  it("prefers an explicit frontmatter title over the filename", () => {
+    const note = parseNote(
+      "20221008090500 Cadence vs cadential progression.md",
+      "---\ntitle: '\"Cadence\" vs \"cadential progression\"'\n---\n# Body\n",
+    );
+    // Slug stays filename-derived; only the display title changes.
+    expect(note.slug).toBe("20221008090500");
+    expect(note.title).toBe('"Cadence" vs "cadential progression"');
+  });
+
+  it("ignores a blank or non-string frontmatter title, falling back to the filename", () => {
+    expect(parseNote("20220403110000 Harmony definition.md", "---\ntitle: '   '\n---\n").title).toBe(
+      "Harmony definition",
+    );
+    expect(parseNote("20220403110000 Harmony definition.md", "---\ntitle: 2022\n---\n").title).toBe(
+      "Harmony definition",
+    );
+  });
+
   it("parses YAML frontmatter and drops it from the body", () => {
     const note = parseNote("x.md", "---\ntags: [Dev]\nstatus: draft\n---\n# Body\ntext here");
     expect(note.frontmatter).toEqual({ tags: ["Dev"], status: "draft" });

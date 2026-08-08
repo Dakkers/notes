@@ -4,13 +4,12 @@ import { ChipList, Combobox, Flex, Heading, Text } from "@saintly-software/barit
 import { z } from "zod";
 
 import { notes } from "virtual:demo-notes";
+import { byTitle } from "../lib/notes/sort";
 import { tagIntent, visibleTags } from "../lib/notes/tags";
 
 // Stub notes (not written yet) are omitted from the listing and the tag filter;
 // they remain reachable via backlinks from the notes that reference them.
-const sortedNotes = [...notes]
-  .filter((note) => !note.empty)
-  .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+const sortedNotes = [...notes].filter((note) => !note.empty).sort(byTitle);
 
 const tagOptions = [...new Set(sortedNotes.flatMap((note) => visibleTags(note.tags)))]
   .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))

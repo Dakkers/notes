@@ -1,12 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { Flex, ScrollArea, Text, vars } from "@saintly-software/baritone";
 import { notes } from "virtual:demo-notes";
+import { byTitle } from "../lib/notes/sort";
 
 // Stub notes (not written yet) stay out of the sidebar; they're still reachable
 // via backlinks from the notes that reference them.
-const sortedNotes = [...notes]
-  .filter((note) => !note.empty)
-  .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+const sortedNotes = [...notes].filter((note) => !note.empty).sort(byTitle);
 
 const surface = vars.surface.color.neutral.high.default;
 
