@@ -1,9 +1,9 @@
-import { Button, Icon, Link } from "@saintly-software/baritone";
+import { Button, Icon, type Intent, Link, vars } from "@saintly-software/baritone";
 import { Link as RouterLink } from "@tanstack/react-router";
 import type { Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import { Maximize, X } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
@@ -133,7 +133,38 @@ export function renderNoteHast(tree: Root): ReactNode {
   return toJsxRuntime(tree, { Fragment, jsx, jsxs, components: { a: Anchor, img: Image } });
 }
 
+// Callouts (`> [!type]`) are plain HTML from the build-time renderer, styled in
+// `prose.css`, which has no access to Baritone's (hashed) design tokens. Bridge
+// them here: expose each intent's low-emphasis surface — the tint background,
+// its readable text, and its border — as CSS variables on the prose wrapper, so
+// `prose.css` can paint each callout type by mapping it to one of these intents.
+const CALLOUT_INTENTS: Intent[] = [
+  "primary",
+  "secondary",
+  "positive",
+  "warning",
+  "negative",
+  "neutral",
+];
+const calloutTokens = Object.fromEntries(
+  CALLOUT_INTENTS.flatMap((intent) => {
+    const color = vars.surface.color[intent];
+    // `high`'s fill carries the intent hue (a soft tint in this theme) → the card
+    // background; `low`'s border gives a matching hue edge; `low`'s text is the
+    // near-black, contrast-checked colour for the title and icon.
+    return [
+      [`--cx-${intent}-bg`, color.high.default.bgc],
+      [`--cx-${intent}-border`, color.low.default.border],
+      [`--cx-${intent}-accent`, color.low.default.text],
+    ];
+  }),
+) as CSSProperties;
+
 /** Render a note's body hast tree to React inside the prose typography scope. */
 export function NoteBody({ tree }: { tree: Root }) {
-  return <div className="prose">{renderNoteHast(tree)}</div>;
+  return (
+    <div className="prose" style={calloutTokens}>
+      {renderNoteHast(tree)}
+    </div>
+  );
 }

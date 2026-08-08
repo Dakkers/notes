@@ -146,18 +146,33 @@
 /*
  * Obsidian callouts (`> [!type] title`) rendered as titled cards. A foldable
  * callout (`[!type]+` / `[!type]-`) is a native `<details>`/`<summary>`, so it
- * collapses with no client JS; a plain one is a `<div>`. Each type sets its own
- * `--callout-accent` (and icon) below; the accent tints the border, title, and a
- * faint background wash via `color-mix`.
+ * collapses with no client JS; a plain one is a `<div>`. Colour comes from
+ * Baritone's intent tokens: each type maps to an intent's low-emphasis surface —
+ * tint background (`--cx-*-bg`), readable text (`--cx-*-accent`), border
+ * (`--cx-*-border`) — bridged onto the prose wrapper in `#/components/NoteBody`.
+ * The base rule defaults to the `primary` intent; per-type blocks below reassign
+ * these three vars (and the icon). Unknown types keep the primary default.
  */
 .prose .callout {
-  --callout-accent: var(--prose-accent);
+  --callout-bg: var(--cx-primary-bg);
+  --callout-accent: var(--cx-primary-accent);
+  --callout-border: var(--cx-primary-border);
   --callout-icon: "ℹ";
-  border: 1px solid color-mix(in srgb, var(--callout-accent) 30%, transparent);
-  border-left: 3px solid var(--callout-accent);
+  /* The card is a Baritone surface, and Baritone is mounted light-only (see
+   * `__root.tsx`). So pin the prose palette to its light values here: without it,
+   * the page's dark-mode prose colours (light text/links) would be unreadable on
+   * this light Baritone background. `color` is re-set so descendants re-resolve
+   * against the local `--prose-fg`. */
+  --prose-fg: #1c1c1e;
+  --prose-muted: #6b7280;
+  --prose-accent: #3f5bd9;
+  --prose-rule: #e4e4e7;
+  --prose-code-bg: #f2f2f4;
+  color: var(--prose-fg);
+  border: 1px solid var(--callout-border);
   border-radius: 8px;
   padding: 0.75em 1.1em;
-  background: color-mix(in srgb, var(--callout-accent) 8%, var(--prose-code-bg));
+  background: var(--callout-bg);
 }
 .prose .callout-title {
   display: flex;
@@ -204,36 +219,47 @@
 .prose .callout-content > :first-child {
   margin-top: 0;
 }
-/* Per-type accents + icons. Unknown types fall back to the `.callout` defaults
- * (the accent/info glyph above), matching Obsidian's behaviour. */
+/* Per-type intent + icon. Each block maps a family of Obsidian callout types to
+ * one Baritone intent (its `--cx-*` surface vars) and a glyph. Unknown types keep
+ * the `primary` default from the base rule, matching Obsidian's behaviour. */
 .prose .callout-note,
 .prose .callout-info,
 .prose .callout-todo {
-  --callout-accent: #3f79d9;
+  --callout-bg: var(--cx-primary-bg);
+  --callout-accent: var(--cx-primary-accent);
+  --callout-border: var(--cx-primary-border);
   --callout-icon: "ℹ";
 }
 .prose .callout-tip,
 .prose .callout-hint,
 .prose .callout-important {
-  --callout-accent: #0ea5a5;
+  --callout-bg: var(--cx-positive-bg);
+  --callout-accent: var(--cx-positive-accent);
+  --callout-border: var(--cx-positive-border);
   --callout-icon: "★";
 }
 .prose .callout-success,
 .prose .callout-check,
 .prose .callout-done {
-  --callout-accent: #22a06b;
+  --callout-bg: var(--cx-positive-bg);
+  --callout-accent: var(--cx-positive-accent);
+  --callout-border: var(--cx-positive-border);
   --callout-icon: "✓";
 }
 .prose .callout-question,
 .prose .callout-help,
 .prose .callout-faq {
-  --callout-accent: #c98a00;
+  --callout-bg: var(--cx-warning-bg);
+  --callout-accent: var(--cx-warning-accent);
+  --callout-border: var(--cx-warning-border);
   --callout-icon: "?";
 }
 .prose .callout-warning,
 .prose .callout-caution,
 .prose .callout-attention {
-  --callout-accent: #e08600;
+  --callout-bg: var(--cx-warning-bg);
+  --callout-accent: var(--cx-warning-accent);
+  --callout-border: var(--cx-warning-border);
   --callout-icon: "⚠";
 }
 .prose .callout-danger,
@@ -241,23 +267,31 @@
 .prose .callout-failure,
 .prose .callout-fail,
 .prose .callout-bug {
-  --callout-accent: #e03e3e;
+  --callout-bg: var(--cx-negative-bg);
+  --callout-accent: var(--cx-negative-accent);
+  --callout-border: var(--cx-negative-border);
   --callout-icon: "✕";
 }
-.prose .callout-example {
-  --callout-accent: #a054d6;
+.prose .callout-example,
+.prose .callout-abstract,
+.prose .callout-summary,
+.prose .callout-tldr {
+  --callout-bg: var(--cx-secondary-bg);
+  --callout-accent: var(--cx-secondary-accent);
+  --callout-border: var(--cx-secondary-border);
   --callout-icon: "❋";
-}
-.prose .callout-quote,
-.prose .callout-cite {
-  --callout-accent: var(--prose-muted);
-  --callout-icon: "❝";
 }
 .prose .callout-abstract,
 .prose .callout-summary,
 .prose .callout-tldr {
-  --callout-accent: #12a5b8;
   --callout-icon: "≡";
+}
+.prose .callout-quote,
+.prose .callout-cite {
+  --callout-bg: var(--cx-neutral-bg);
+  --callout-accent: var(--cx-neutral-accent);
+  --callout-border: var(--cx-neutral-border);
+  --callout-icon: "❝";
 }
 
 /*
