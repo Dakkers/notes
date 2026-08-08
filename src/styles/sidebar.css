@@ -1,0 +1,45 @@
+/* Sidebar note links. The token system exposes only `default`/`disabled`
+   states, so the interactive states (hover, pressed, selected) live here.
+   Colour values are fed in as custom properties by `Sidebar.tsx` — the
+   theme's vars are hashed at build time and can't be named from a static
+   sheet, so the component publishes the ones we need. */
+
+.sidebar-link {
+  display: block;
+  /* Fill the row so the whole width — not just the text — is a click target. */
+  width: 100%;
+  padding: var(--sidebar-link-py) var(--sidebar-link-px);
+  border-radius: var(--sidebar-link-radius);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--sidebar-link-motion),
+    color var(--sidebar-link-motion);
+}
+
+.sidebar-link:hover {
+  background-color: var(--sidebar-link-hover-bg);
+}
+
+/* Pressed: fires on mouse-down through release. */
+.sidebar-link:active {
+  background-color: var(--sidebar-link-active-bg);
+}
+
+/* Current note. TanStack Router marks the active link with
+   `data-status="active"`. */
+.sidebar-link[data-status="active"] {
+  background-color: var(--sidebar-link-selected-bg);
+  color: var(--sidebar-link-selected-text);
+  font-weight: var(--sidebar-link-selected-weight);
+}
+
+.sidebar-link[data-status="active"]:hover {
+  background-color: var(--sidebar-link-selected-bg);
+}
+
+.sidebar-link:focus-visible {
+  outline: 2px solid var(--sidebar-link-focus);
+  outline-offset: -2px;
+}

@@ -10,6 +10,7 @@ import { NavBar } from "../components/NavBar";
 import { Sidebar } from "../components/Sidebar";
 import { buildAppTokens } from "../lib/theme";
 import resetCss from "../styles/reset.css?url";
+import sidebarCss from "../styles/sidebar.css?url";
 import baritoneCss from "../styles/styles.css?url";
 
 const APP_NAME = "Dak's Notes";
@@ -56,6 +57,7 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: resetCss },
       { rel: "stylesheet", href: baritoneCss },
+      { rel: "stylesheet", href: sidebarCss },
     ],
   }),
   shellComponent: RootDocument,
