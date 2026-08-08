@@ -1,4 +1,4 @@
-import { Button, Icon, type Intent, Link, vars } from "@saintly-software/baritone";
+import { Button, Icon, type Intent, Link, isInternalHref, vars } from "@saintly-software/baritone";
 import { Link as RouterLink } from "@tanstack/react-router";
 import type { Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
@@ -10,10 +10,11 @@ import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 // Internal note links are the `/notes/<slug>` anchors the build-time renderer
 // emits for resolved `[[wikilinks]]` (see `#/lib/notes/render`). Routing them
-// through TanStack `<Link>` gives SPA navigation + intent preloading; anything
-// else (external URLs, unresolved links — which aren't anchors at all) is a
-// Baritone `<Link>` rendering a plain `<a>`.
-const INTERNAL_HREF = /^\/notes\/(.+)$/;
+// through TanStack `<Link>` by route + param gives SPA navigation + intent
+// preloading. A `#fragment`/`?query` suffix is excluded from the capture so it
+// never lands inside the `$slug` param — such an href falls through to the
+// Baritone `<Link>` below, where the root `LinkProvider` splits it correctly.
+const INTERNAL_HREF = /^\/notes\/([^#?]+)$/;
 
 function Anchor({ href, children, ...rest }: ComponentProps<"a">) {
   const slug = typeof href === "string" ? INTERNAL_HREF.exec(href)?.[1] : undefined;
@@ -28,12 +29,15 @@ function Anchor({ href, children, ...rest }: ComponentProps<"a">) {
       </RouterLink>
     );
   }
-  // `render={<a />}` opts this link out of the root `LinkProvider`: everything
-  // reaching here is either external or a same-page/section anchor (a footnote
-  // ref, a `/references#short-form` citation), none of which the router should
-  // take over.
+  // Everything else goes through the root `LinkProvider`, so an internal
+  // path + fragment (a `/references#short-form` citation) becomes a real SPA
+  // navigation. Two kinds opt out via `render={<a />}`, which bypasses the
+  // provider: a fragment-only href — a footnote ref or backref, which the
+  // browser should resolve in-page rather than the router re-navigating — and an
+  // external URL, which no client router can own anyway.
+  const plain = href === undefined || href.startsWith("#") || !isInternalHref(href);
   return (
-    <Link render={<a />} href={href} {...rest}>
+    <Link render={plain ? <a /> : undefined} href={href} {...rest}>
       {children}
     </Link>
   );
