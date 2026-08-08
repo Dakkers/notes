@@ -28,6 +28,14 @@ interface DemoNotesOptions {
    * into the client build as static assets. Omitted in demo mode → no images.
    */
   attachmentsDir?: string;
+  /**
+   * Folder holding transclusion-only notes (e.g. Obsidian's `_Meta/Embed`
+   * snippets) that live outside the main notes dir. Their bodies become available
+   * to `![[note]]` embeds and their names resolve, but they are *not* emitted as
+   * routable pages, don't appear in listings, and aren't part of the link graph.
+   * Omitted → only notes inside `dir` can be transcluded.
+   */
+  embedsDir?: string;
 }
 
 /**
@@ -47,10 +55,16 @@ interface DemoNotesOptions {
  * build (see `generateBundle` and `configureServer`), so only images that notes
  * actually embed ship — the rest of the vault stays out.
  */
-export function demoNotes({ dir = ".demo", attachmentsDir }: DemoNotesOptions = {}): Plugin {
+export function demoNotes({
+  dir = ".demo",
+  attachmentsDir,
+  embedsDir,
+}: DemoNotesOptions = {}): Plugin {
   let notesDir: string;
   // Absolute path to the attachments folder, or undefined in demo mode.
   let attachmentsPath: string | undefined;
+  // Absolute path to the transclusion-only embeds folder, or undefined when unset.
+  let embedsPath: string | undefined;
   // Whether the current build is the SSR (server) bundle. Static assets belong in
   // the client bundle only, so the emit step below skips the server build.
   let isSsrBuild = false;
@@ -58,27 +72,33 @@ export function demoNotes({ dir = ".demo", attachmentsDir }: DemoNotesOptions = 
   // render and emitted into the client bundle. Empty until `renderContent` runs.
   let referenced: Attachment[] = [];
 
-  function readAll(): { fileName: string; raw: string }[] {
-    return readdirSync(notesDir, { withFileTypes: true })
+  function readAll(fromDir: string): { fileName: string; raw: string }[] {
+    return readdirSync(fromDir, { withFileTypes: true })
       .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
       .map((entry) => entry.name)
       .sort()
-      .map((fileName) => ({ fileName, raw: readFileSync(join(notesDir, fileName), "utf8") }));
+      .map((fileName) => ({ fileName, raw: readFileSync(join(fromDir, fileName), "utf8") }));
   }
 
   // One scan → notes with backlinks attached, plus the shared link resolver both
-  // the metadata and the rendered content are derived from.
+  // the metadata and the rendered content are derived from. Embed-only notes (from
+  // `embedsPath`) feed the resolver so `![[Embed/…]]` targets resolve, but stay out
+  // of the routable `notes` — see `renderContent` for how they're transcluded.
   function build(): {
     files: { fileName: string; raw: string }[];
     notes: Note[];
+    embedFiles: { fileName: string; raw: string }[];
+    embedNotes: Note[];
     resolve: ReturnType<typeof buildResolver>;
   } {
-    const files = readAll();
+    const files = readAll(notesDir);
     const notes = files.map(({ fileName, raw }) => parseNote(fileName, raw));
-    const resolve = buildResolver(notes);
+    const embedFiles = embedsPath === undefined ? [] : readAll(embedsPath);
+    const embedNotes = embedFiles.map(({ fileName, raw }) => parseNote(fileName, raw));
+    const resolve = buildResolver(notes, embedNotes);
     attachBacklinks(notes, resolve);
     attachOutgoingLinks(notes, resolve);
-    return { files, notes, resolve };
+    return { files, notes, embedFiles, embedNotes, resolve };
   }
 
   // Rendered bodies keyed by slug, plus the footnote trees for the notes that have
@@ -87,26 +107,40 @@ export function demoNotes({ dir = ".demo", attachmentsDir }: DemoNotesOptions = 
   function renderContent(): {
     bodies: Record<string, HastRoot>;
     footnotes: Record<string, HastRoot>;
+    raw: Record<string, string>;
   } {
-    const { files, notes, resolve } = build();
+    const { files, notes, embedFiles, embedNotes, resolve } = build();
     const attachments = buildAttachmentIndex(attachmentsPath);
     // Raw bodies keyed by slug, so `![[note]]` embeds can transclude one another.
     const sources = new Map(
-      notes.map((note, i) => [note.slug, { raw: files[i].raw, title: note.title }]),
+      notes.map((note, i) => [note.slug, { raw: files[i].raw, title: note.title, routable: true }]),
     );
+    // Embed-only sources are transcludable and resolvable but have no page, so they
+    // render without the card's back-link. Registered after the routable notes and
+    // skipped on a slug collision, so a real note always wins.
+    for (const [i, note] of embedNotes.entries()) {
+      if (!sources.has(note.slug))
+        sources.set(note.slug, { raw: embedFiles[i].raw, title: note.title, routable: false });
+    }
     const render = createNoteRenderer(resolve, attachments, sources);
 
     const bodies: Record<string, HastRoot> = {};
     const footnotes: Record<string, HastRoot> = {};
-    for (const [i, { raw }] of files.entries()) {
-      const rendered = render(raw, notes[i].title, notes[i].slug);
+    // The verbatim `.md` source per note, so the note page can offer a "view raw
+    // markdown" modal. Unlike the rest of the vault, these routable-note sources
+    // are already public (their rendered form ships), so shipping the source too
+    // leaks nothing the reader can't already reconstruct.
+    const raw: Record<string, string> = {};
+    for (const [i, { raw: source }] of files.entries()) {
+      const rendered = render(source, notes[i].title, notes[i].slug);
       bodies[notes[i].slug] = rendered.body;
       if (rendered.footnotes !== null) footnotes[notes[i].slug] = rendered.footnotes;
+      raw[notes[i].slug] = source;
     }
     // Record which attachments the notes actually embed, so `generateBundle` emits
     // just those (not the whole vault) into the client bundle.
     referenced = attachments.used();
-    return { bodies, footnotes };
+    return { bodies, footnotes, raw };
   }
 
   return {
@@ -116,6 +150,7 @@ export function demoNotes({ dir = ".demo", attachmentsDir }: DemoNotesOptions = 
       notesDir = resolve(config.root, dir);
       attachmentsPath =
         attachmentsDir === undefined ? undefined : resolve(config.root, attachmentsDir);
+      embedsPath = embedsDir === undefined ? undefined : resolve(config.root, embedsDir);
       isSsrBuild = config.build.ssr !== false && config.build.ssr !== undefined;
     },
 
@@ -128,14 +163,15 @@ export function demoNotes({ dir = ".demo", attachmentsDir }: DemoNotesOptions = 
         return `export const notes = ${JSON.stringify(build().notes)};\n`;
       }
       if (id === MODULES["virtual:demo-notes/content"]) {
-        const { bodies, footnotes } = renderContent();
+        const { bodies, footnotes, raw } = renderContent();
         // Drop parser `position` data — it bloats the serialized tree and the app
         // never reads it.
         const stripPosition = (key: string, value: unknown) =>
           key === "position" ? undefined : value;
         return (
           `export const content = ${JSON.stringify(bodies, stripPosition)};\n` +
-          `export const footnotes = ${JSON.stringify(footnotes, stripPosition)};\n`
+          `export const footnotes = ${JSON.stringify(footnotes, stripPosition)};\n` +
+          `export const raw = ${JSON.stringify(raw)};\n`
         );
       }
     },
@@ -165,6 +201,7 @@ export function demoNotes({ dir = ".demo", attachmentsDir }: DemoNotesOptions = 
       // isn't already watching them.
       server.watcher.add(notesDir);
       if (attachmentsPath !== undefined) server.watcher.add(attachmentsPath);
+      if (embedsPath !== undefined) server.watcher.add(embedsPath);
 
       // Serve `/attachments/<hash><ext>` from the vault. The URL carries a content
       // hash, not a filename, so map it back by hashing the vault's images once
@@ -192,7 +229,8 @@ export function demoNotes({ dir = ".demo", attachmentsDir }: DemoNotesOptions = 
       const reload = (file: string) => {
         const inNotes = file.startsWith(notesDir);
         const inAttachments = attachmentsPath !== undefined && file.startsWith(attachmentsPath);
-        if (!inNotes && !inAttachments) return;
+        const inEmbeds = embedsPath !== undefined && file.startsWith(embedsPath);
+        if (!inNotes && !inAttachments && !inEmbeds) return;
         // A changed image gets a new content hash (and URL), so drop the reverse map
         // and re-render the notes that reference it.
         if (inAttachments) byUrl = null;

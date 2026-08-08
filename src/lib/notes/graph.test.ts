@@ -17,6 +17,7 @@ function note(over: Partial<Note>): Note {
     outgoingLinks: [],
     tags: [],
     wordCount: 0,
+    empty: false,
     ...over,
   };
 }

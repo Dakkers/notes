@@ -68,4 +68,11 @@ export interface Note {
   tags: string[];
   /** Rough word count of the prose body (code blocks excluded). */
   wordCount: number;
+  /**
+   * True when the body (after frontmatter) is blank — a stub note that exists as
+   * a `[[link]]` target but hasn't been written yet. Empty notes are hidden from
+   * the sidebar and listings, but stay reachable via their backlinks, where the
+   * page shows a "not written yet" placeholder instead of an empty article.
+   */
+  empty: boolean;
 }

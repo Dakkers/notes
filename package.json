@@ -28,6 +28,7 @@
     "@tanstack/router-plugin": "1.168.19",
     "@vanilla-extract/css": "1.21.1",
     "hast-util-to-jsx-runtime": "^2.3.6",
+    "lucide-react": "^1.30.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "zod": "^4.4.3"

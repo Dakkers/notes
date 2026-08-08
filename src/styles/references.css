@@ -1,0 +1,48 @@
+/*
+ * Styling for the `/references` bibliography table. This page renders outside
+ * `.prose`, so its table rules are self-contained here (linked from the route's
+ * `head`) rather than inherited from `prose.css`. Colour tokens mirror the prose
+ * palette so the two read as one system in both light and dark.
+ */
+.references-table {
+  --ref-rule: #e2e2e6;
+  --ref-muted: #6b7280;
+  width: 100%;
+  border-collapse: collapse;
+  /* Keep the short-form column tight and the citation column elastic. */
+  table-layout: auto;
+}
+
+.references-table th,
+.references-table td {
+  border-block-end: 1px solid var(--ref-rule);
+  padding: 0.55em 0.75em 0.55em 0;
+  text-align: start;
+  vertical-align: baseline;
+}
+
+/* The short-form column: a narrow, non-wrapping monospace key. */
+.references-table td:first-child,
+.references-table th:first-child {
+  width: 1%;
+  white-space: nowrap;
+  padding-inline-end: 1.25em;
+}
+
+.references-table thead th {
+  font-weight: 600;
+  border-block-end-width: 2px;
+}
+
+/* A row targeted via `/references#short-form` gets a brief highlight so the
+   reader lands on the right line. */
+.references-table tr:target td {
+  background: color-mix(in srgb, var(--ref-muted) 12%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .references-table {
+    --ref-rule: #3a3a3e;
+    --ref-muted: #9ca3af;
+  }
+}

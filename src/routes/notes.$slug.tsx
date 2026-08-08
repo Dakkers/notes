@@ -1,8 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Flex, Heading } from "@saintly-software/baritone";
+import { Flex, Heading, Text } from "@saintly-software/baritone";
 
 import { notes } from "virtual:demo-notes";
-import { content, footnotes } from "virtual:demo-notes/content";
+import { content, footnotes, raw } from "virtual:demo-notes/content";
 import { NoteBody } from "../components/NoteBody";
 import { NoteInfoPanel } from "../components/NoteInfoPanel";
 import proseCss from "../styles/prose.css?url";
@@ -43,19 +43,25 @@ function NotePage() {
     // The article and its backlinks panel share a row; `wrap` drops the panel
     // below the note on narrow viewports.
     <Flex gap="6" align="start" wrap>
-      {/* `minWidth: 0` lets wide children (code blocks, tables) scroll instead of
-          stretching the flex row. */}
-      <Flex render={<article />} grow direction="column" gap="4" style={{ minWidth: 0 }}>
-        {/* Tags now live in the side panel alongside the note's other metadata. */}
+      <Flex render={<article />} grow direction="column" gap="4" minWidth="0">
         <Heading level={1}>{note.title}</Heading>
 
-        {/* The body tree is produced at build/dev time by the `demoNotes()` plugin
-            (`#/lib/notes/render`); `NoteBody` turns it into React so `[[wikilinks]]`
-            navigate through the router. */}
-        <NoteBody tree={tree} />
+        {/* A stub note reached via a backlink: the file exists (so the route
+            resolves) but nothing has been written yet. Show a placeholder rather
+            than an empty article; the info panel still lists what links here. */}
+        {note.empty ? (
+          <Text as="p" saliency="low" style={{ fontStyle: "italic" }}>
+            This note hasn't been written yet.
+          </Text>
+        ) : (
+          /* The body tree is produced at build/dev time by the `demoNotes()` plugin
+             (`#/lib/notes/render`); `NoteBody` turns it into React so `[[wikilinks]]`
+             navigate through the router. */
+          <NoteBody tree={tree} />
+        )}
       </Flex>
 
-      <NoteInfoPanel note={note} footnotes={footnotes[slug]} />
+      <NoteInfoPanel note={note} footnotes={footnotes[slug]} raw={raw[slug]} />
     </Flex>
   );
 }

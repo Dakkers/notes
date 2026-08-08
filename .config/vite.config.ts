@@ -15,9 +15,12 @@ export default defineConfig(({ mode }) => {
   // `NOTES_DIR` (an absolute path in `.config/.env.local`, gitignored) points the
   // notes plugin at a real vault; without it, the committed `.demo` fixtures are
   // used. `ATTACHMENTS_DIR` likewise points at the vault's image attachments folder
-  // (Obsidian's "Files" dir); without it, image embeds simply don't resolve. Load
-  // with an empty prefix so these Node-side vars need not be `VITE_`-prefixed.
-  const { NOTES_DIR, ATTACHMENTS_DIR } = loadEnv(mode, ".config", "");
+  // (Obsidian's "Files" dir); without it, image embeds simply don't resolve.
+  // `EMBEDS_DIR` points at a folder of transclusion-only snippets outside the notes
+  // dir (e.g. `_Meta/Embed`), so `![[Embed/…]]` embeds resolve without those notes
+  // becoming their own pages. Load with an empty prefix so these Node-side vars
+  // need not be `VITE_`-prefixed.
+  const { NOTES_DIR, ATTACHMENTS_DIR, EMBEDS_DIR } = loadEnv(mode, ".config", "");
 
   return {
     // `.env*` files live alongside this config rather than in the project root.
@@ -31,7 +34,11 @@ export default defineConfig(({ mode }) => {
     // maps the Worker onto TanStack Start's `ssr` environment.
     plugins: [
       cloudflare({ viteEnvironment: { name: "ssr" } }),
-      demoNotes({ dir: NOTES_DIR || undefined, attachmentsDir: ATTACHMENTS_DIR || undefined }),
+      demoNotes({
+        dir: NOTES_DIR || undefined,
+        attachmentsDir: ATTACHMENTS_DIR || undefined,
+        embedsDir: EMBEDS_DIR || undefined,
+      }),
       tanstackStart(),
       viteReact(),
     ],

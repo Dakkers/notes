@@ -7,6 +7,7 @@ import type { Note } from "../lib/notes/types";
 import { tagIntent, visibleTags } from "../lib/notes/tags";
 import { formatWrittenAt } from "../lib/notes/timestamp";
 import { renderNoteHast } from "./NoteBody";
+import { RawMarkdownModal } from "./RawMarkdownModal";
 
 const surface = vars.surface.color.neutral.high.default;
 
@@ -17,7 +18,16 @@ const surface = vars.surface.color.neutral.high.default;
  * (backlinks — computed at build time in `#/lib/notes/graph`). Each section is
  * omitted when empty; the panel renders nothing when every section is empty.
  */
-export function NoteInfoPanel({ note, footnotes }: { note: Note; footnotes?: HastRoot }) {
+export function NoteInfoPanel({
+  note,
+  footnotes,
+  raw,
+}: {
+  note: Note;
+  footnotes?: HastRoot;
+  /** The note's verbatim `.md` source, for the "view raw markdown" modal. */
+  raw?: string;
+}) {
   const tags = visibleTags(note.tags);
   const writtenAt = formatWrittenAt(note.id);
 
@@ -85,6 +95,14 @@ export function NoteInfoPanel({ note, footnotes }: { note: Note; footnotes?: Has
     );
   }
 
+  if (raw !== undefined) {
+    sections.push(
+      <Section key="source" title="Source">
+        <RawMarkdownModal source={raw} title={note.title} />
+      </Section>,
+    );
+  }
+
   if (sections.length === 0) return null;
 
   return (
@@ -122,11 +140,13 @@ export function NoteInfoPanel({ note, footnotes }: { note: Note; footnotes?: Has
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Flex direction="column" gap="2">
+      {/* `letterSpacing` stays inline — baritone has no tracking atom or token. */}
       <Text
         as="span"
         size="xs"
         saliency="low"
-        style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}
+        textTransform="uppercase"
+        style={{ letterSpacing: "0.06em" }}
       >
         {title}
       </Text>

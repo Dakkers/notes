@@ -114,16 +114,10 @@
 
 /*
  * A transcluded note (`![[note]]` on its own line): the embedded body rendered
- * inline as a card, with a link back to the source underneath. The card resets the
- * prose vertical rhythm for its own children so the embedded content spaces itself.
+ * inline, with a link back to the source underneath. No card chrome of its own —
+ * the content flows as if written in place — but it still resets the prose vertical
+ * rhythm for its own children so the embedded content spaces itself.
  */
-.prose .embed {
-  border: 1px solid var(--prose-rule);
-  border-left: 3px solid var(--prose-accent);
-  border-radius: 8px;
-  padding: 0.9em 1.1em;
-  background: var(--prose-code-bg);
-}
 .prose .embed-content > * + * {
   margin-top: 0.9em;
 }
@@ -147,6 +141,123 @@
 .prose .embed-link:hover {
   color: var(--prose-accent);
   text-decoration: underline;
+}
+
+/*
+ * Obsidian callouts (`> [!type] title`) rendered as titled cards. A foldable
+ * callout (`[!type]+` / `[!type]-`) is a native `<details>`/`<summary>`, so it
+ * collapses with no client JS; a plain one is a `<div>`. Each type sets its own
+ * `--callout-accent` (and icon) below; the accent tints the border, title, and a
+ * faint background wash via `color-mix`.
+ */
+.prose .callout {
+  --callout-accent: var(--prose-accent);
+  --callout-icon: "ℹ";
+  border: 1px solid color-mix(in srgb, var(--callout-accent) 30%, transparent);
+  border-left: 3px solid var(--callout-accent);
+  border-radius: 8px;
+  padding: 0.75em 1.1em;
+  background: color-mix(in srgb, var(--callout-accent) 8%, var(--prose-code-bg));
+}
+.prose .callout-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  font-weight: 600;
+  color: var(--callout-accent);
+}
+.prose .callout-title::before {
+  content: var(--callout-icon);
+}
+/* Foldable callouts: the whole title row is the toggle. Swap the UA disclosure
+ * triangle for a chevron pinned to the row's end that flips when open. */
+.prose details.callout > summary.callout-title {
+  cursor: pointer;
+  list-style: none;
+}
+.prose details.callout > summary.callout-title::-webkit-details-marker {
+  display: none;
+}
+.prose details.callout > summary.callout-title::after {
+  content: "";
+  margin-left: auto;
+  width: 0.45em;
+  height: 0.45em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+.prose details.callout[open] > summary.callout-title::after {
+  transform: rotate(45deg);
+}
+/* Body: its own vertical rhythm, a gap under the title, and no gap when empty. */
+.prose .callout-content {
+  margin-top: 0.6em;
+}
+.prose .callout-content:empty {
+  margin-top: 0;
+}
+.prose .callout-content > * + * {
+  margin-top: 0.75em;
+}
+.prose .callout-content > :first-child {
+  margin-top: 0;
+}
+/* Per-type accents + icons. Unknown types fall back to the `.callout` defaults
+ * (the accent/info glyph above), matching Obsidian's behaviour. */
+.prose .callout-note,
+.prose .callout-info,
+.prose .callout-todo {
+  --callout-accent: #3f79d9;
+  --callout-icon: "ℹ";
+}
+.prose .callout-tip,
+.prose .callout-hint,
+.prose .callout-important {
+  --callout-accent: #0ea5a5;
+  --callout-icon: "★";
+}
+.prose .callout-success,
+.prose .callout-check,
+.prose .callout-done {
+  --callout-accent: #22a06b;
+  --callout-icon: "✓";
+}
+.prose .callout-question,
+.prose .callout-help,
+.prose .callout-faq {
+  --callout-accent: #c98a00;
+  --callout-icon: "?";
+}
+.prose .callout-warning,
+.prose .callout-caution,
+.prose .callout-attention {
+  --callout-accent: #e08600;
+  --callout-icon: "⚠";
+}
+.prose .callout-danger,
+.prose .callout-error,
+.prose .callout-failure,
+.prose .callout-fail,
+.prose .callout-bug {
+  --callout-accent: #e03e3e;
+  --callout-icon: "✕";
+}
+.prose .callout-example {
+  --callout-accent: #a054d6;
+  --callout-icon: "❋";
+}
+.prose .callout-quote,
+.prose .callout-cite {
+  --callout-accent: var(--prose-muted);
+  --callout-icon: "❝";
+}
+.prose .callout-abstract,
+.prose .callout-summary,
+.prose .callout-tldr {
+  --callout-accent: #12a5b8;
+  --callout-icon: "≡";
 }
 
 /*
@@ -300,4 +411,29 @@
     --prose-rule: #3a3a3e;
     --prose-code-bg: #26262a;
   }
+}
+
+/*
+ * The "view raw markdown" modal body (see `#/components/RawMarkdownModal`). The
+ * modal renders through a portal, outside `.prose`, so this is self-contained.
+ * Only structural styling lives here; the colours come from Baritone surface
+ * tokens set inline on the element, so the block tracks the design system's theme
+ * rather than a separate `prefers-color-scheme` guess. `pre-wrap` keeps long
+ * lines readable without a horizontal scrollbar, while `overflow: auto` caps the
+ * height on long notes.
+ */
+.raw-markdown {
+  margin: 0;
+  max-height: 60vh;
+  overflow: auto;
+  border-radius: 8px;
+  padding: 0.9em 1em;
+}
+.raw-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  tab-size: 2;
 }

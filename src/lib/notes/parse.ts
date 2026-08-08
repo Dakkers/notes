@@ -84,6 +84,9 @@ export function parseNote(fileName: string, raw: string): Note {
   // Obsidian treats frontmatter `tags` and inline `#tags` as one set.
   for (const tag of normalizeFrontmatterTags(frontmatter.tags)) addTag(tag);
 
+  // A stub note: frontmatter aside, nothing has been written in the body yet.
+  const empty = content.trim() === "";
+
   // `backlinks`/`outgoingLinks` need the whole vault; the plugin fills them after
   // every note parses.
   return {
@@ -99,6 +102,7 @@ export function parseNote(fileName: string, raw: string): Note {
     outgoingLinks: [],
     tags,
     wordCount,
+    empty,
   };
 }
 

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Flex, Heading, Text } from "@saintly-software/baritone";
+import { Flex, Heading, Link, Text } from "@saintly-software/baritone";
 
 const PERSONAL_SITE = "https://dakota-stlaurent.com/";
 
@@ -17,10 +17,9 @@ function About() {
 
       <Text>
         This is a digital garden of my notes. For more about me and my other work, visit{" "}
-        {/* External destination, so a plain anchor rather than a router Link. */}
-        <a href={PERSONAL_SITE} target="_blank" rel="noreferrer">
+        <Link href={PERSONAL_SITE} target="_blank" rel="noreferrer">
           dakota-stlaurent.com
-        </a>
+        </Link>
         .
       </Text>
     </Flex>

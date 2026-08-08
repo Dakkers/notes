@@ -6,9 +6,11 @@ import { z } from "zod";
 import { notes } from "virtual:demo-notes";
 import { tagIntent, visibleTags } from "../lib/notes/tags";
 
-const sortedNotes = [...notes].sort((a, b) =>
-  a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
-);
+// Stub notes (not written yet) are omitted from the listing and the tag filter;
+// they remain reachable via backlinks from the notes that reference them.
+const sortedNotes = [...notes]
+  .filter((note) => !note.empty)
+  .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
 
 const tagOptions = [...new Set(sortedNotes.flatMap((note) => visibleTags(note.tags)))]
   .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
@@ -72,44 +74,37 @@ function NotesIndex() {
         />
       )}
 
-      {/* One entry per note: title links to its page, with the tags and a rough
-          word count as quiet metadata beneath. */}
       <Flex render={<ul />} direction="column" gap="3" style={{ listStyle: "none" }}>
-        {visibleNotes.map((note) => (
-          <Flex key={note.fileName} render={<li />} direction="column" gap="2">
-            <Text as="span" size="lg">
-              <Link to="/notes/$slug" params={{ slug: note.slug }}>
-                {note.title}
-              </Link>
-            </Text>
-
-            {/* Tags as chip links, matching the note page — but low saliency here:
-                this is a long list, so the fills stay a quiet tint rather than a
-                screenful of solid blue. Word count trails as plain metadata. */}
-            <Flex align="center" gap="2" wrap>
-              {(() => {
-                const shown = visibleTags(note.tags);
-                return (
-                  shown.length > 0 && (
-                    <ChipList
-                      size="sm"
-                      saliency="low"
-                      items={shown.map((tag) => ({
-                        id: tag,
-                        children: tag,
-                        intent: tagIntent(tag),
-                        render: <Link to="/notes" search={{ tags: [tag] }} />,
-                      }))}
-                    />
-                  )
-                );
-              })()}
-              <Text as="span" size="sm" saliency="low">
-                {note.wordCount} {note.wordCount === 1 ? "word" : "words"}
+        {visibleNotes.map((note) => {
+          const shown = visibleTags(note.tags);
+          return (
+            <Flex key={note.fileName} render={<li />} direction="column" gap="2">
+              <Text as="span" size="lg">
+                <Link to="/notes/$slug" params={{ slug: note.slug }}>
+                  {note.title}
+                </Link>
               </Text>
+
+              <Flex align="center" gap="2" wrap>
+                {shown.length > 0 && (
+                  <ChipList
+                    size="sm"
+                    saliency="low"
+                    items={shown.map((tag) => ({
+                      id: tag,
+                      children: tag,
+                      intent: tagIntent(tag),
+                      render: <Link to="/notes" search={{ tags: [tag] }} />,
+                    }))}
+                  />
+                )}
+                <Text as="span" size="sm" saliency="low">
+                  {note.wordCount} {note.wordCount === 1 ? "word" : "words"}
+                </Text>
+              </Flex>
             </Flex>
-          </Flex>
-        ))}
+          );
+        })}
 
         {visibleNotes.length === 0 && (
           <Text as="span" size="sm" saliency="low">

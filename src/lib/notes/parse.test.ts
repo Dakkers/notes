@@ -62,4 +62,12 @@ describe("parseNote", () => {
     const note = parseNote("x.md", "one two three\n\n```\nignored code words here\n```");
     expect(note.wordCount).toBe(3);
   });
+
+  it("flags a blank body (frontmatter aside) as an empty stub", () => {
+    expect(parseNote("x.md", "").empty).toBe(true);
+    expect(parseNote("x.md", "   \n\n").empty).toBe(true);
+    expect(parseNote("x.md", "---\ntags: [Dev]\n---\n").empty).toBe(true);
+    expect(parseNote("x.md", "# Just a heading").empty).toBe(false);
+    expect(parseNote("x.md", "some body").empty).toBe(false);
+  });
 });

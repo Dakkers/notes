@@ -24,4 +24,11 @@ declare module "virtual:demo-notes/content" {
    * (see `#/components/NoteInfoPanel`); the body's `[^n]` markers anchor to them.
    */
   export const footnotes: Record<string, import("hast").Root>;
+
+  /**
+   * The verbatim `.md` source per note, keyed by {@link Note.slug} — the exact
+   * text the build-time renderer consumed. Powers the "view raw markdown" modal
+   * in the note's side panel (see `#/components/NoteInfoPanel`).
+   */
+  export const raw: Record<string, string>;
 }

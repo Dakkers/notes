@@ -6,10 +6,19 @@ import type { Backlink, Note, OutgoingLink } from "./types";
  */
 export type ResolveTarget = (target: string) => string | null;
 
-/** Case-insensitive lookup from a note's name *or* id to its slug — how Obsidian matches `[[links]]`. */
-export function buildResolver(notes: readonly Note[]): ResolveTarget {
+/**
+ * Case-insensitive lookup from a note's name *or* id to its slug — how Obsidian
+ * matches `[[links]]`. `embedNotes` are transclusion-only sources (e.g. the
+ * vault's `_Meta/Embed` snippets): their names resolve so `![[Embed/…]]` finds
+ * them, but they're registered first so a routable note always wins a name/id
+ * collision.
+ */
+export function buildResolver(
+  notes: readonly Note[],
+  embedNotes: readonly Note[] = [],
+): ResolveTarget {
   const slugByRef = new Map<string, string>();
-  for (const note of notes) {
+  for (const note of [...embedNotes, ...notes]) {
     slugByRef.set(note.name.toLowerCase(), note.slug);
     if (note.id !== null) slugByRef.set(note.id.toLowerCase(), note.slug);
   }

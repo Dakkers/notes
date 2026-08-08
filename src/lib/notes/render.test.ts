@@ -51,6 +51,12 @@ function images(tree: Root): Element[] {
   return out;
 }
 
+function textContent(tree: Root): string {
+  let out = "";
+  visit(tree, "text", (node) => void (out += node.value));
+  return out;
+}
+
 describe("createNoteRenderer footnotes", () => {
   it("splits footnotes out of the body into their own <ol> tree", () => {
     const { body, footnotes } = render("A claim.[^1]\n\n[^1]: [[kostka-2018]] p.147\n", "Title");
@@ -118,6 +124,29 @@ describe("createNoteRenderer math", () => {
     const { body } = render("Set $[a, b]$ notation.\n", "Title");
     expect(hasKatex(body)).toBe(true);
     expect(hrefs(body)).toHaveLength(0);
+  });
+});
+
+describe("createNoteRenderer source citations", () => {
+  it("links a `[[Sources/<id>]]` citation to its row on the References page", () => {
+    // `Sources/…` isn't a note (the resolver here doesn't know it), so this must be
+    // routed to the References anchor by the `Sources/` rule, not left unresolved.
+    const { body } = render("See [[Sources/caplin-1998|Caplin]] on cadences.\n", "Title");
+    expect(hrefs(body)).toContain("/references#caplin-1998");
+    expect(textContent(body)).toContain("Caplin");
+  });
+
+  it("shows the short form (not the `Sources/` path) when the citation has no alias", () => {
+    const { body } = render("Per [[Sources/kostka-2018]].\n", "Title");
+    expect(hrefs(body)).toContain("/references#kostka-2018");
+    expect(textContent(body)).toContain("kostka-2018");
+    expect(textContent(body)).not.toContain("Sources/");
+  });
+
+  it("still resolves a bare `[[kostka-2018]]` to the note, not the References page", () => {
+    // Only the `Sources/` prefix diverts to the bibliography; a plain id is a note link.
+    const { body } = render("Per [[kostka-2018]].\n", "Title");
+    expect(hrefs(body)).toContain("/notes/kostka-2018");
   });
 });
 
@@ -255,5 +284,53 @@ describe("createNoteRenderer transclusion", () => {
     expect(textOf(body)).toContain("Body B");
     // The cycle's return edge to loop-a survives as a link rather than a fifth card.
     expect(hrefs(body)).toContain("/notes/loop-a");
+  });
+});
+
+describe("createNoteRenderer callouts", () => {
+  it("renders a foldable `[!type]-` callout as a collapsed <details> card", () => {
+    const { body } = render("> [!warning]- Heads up\n> Be careful here.\n", "Title");
+
+    const [callout] = withClass(body, "callout");
+    expect(callout.tagName).toBe("details");
+    // `-` starts collapsed → no `open` attribute.
+    expect(callout.properties?.open).toBeUndefined();
+    expect(callout.properties?.className).toContain("callout-warning");
+
+    const [title] = withClass(body, "callout-title");
+    expect(title.tagName).toBe("summary");
+    expect(textOf(title)).toBe("Heads up");
+
+    const [content] = withClass(body, "callout-content");
+    expect(textOf(content)).toContain("Be careful here.");
+  });
+
+  it("starts a `[!type]+` callout expanded", () => {
+    const { body } = render("> [!note]+ Open me\n> Body.\n", "Title");
+    const [callout] = withClass(body, "callout");
+    expect(callout.tagName).toBe("details");
+    expect(callout.properties?.open).toBe(true);
+  });
+
+  it("renders a non-foldable callout as a <div>, defaulting the title to the type", () => {
+    const { body } = render("> [!tip]\n> Handy.\n", "Title");
+    const [callout] = withClass(body, "callout");
+    expect(callout.tagName).toBe("div");
+
+    const [title] = withClass(body, "callout-title");
+    expect(title.tagName).toBe("div");
+    // No title text after the marker → capitalised type.
+    expect(textOf(title)).toBe("Tip");
+  });
+
+  it("resolves `[[wikilinks]]` inside a callout body", () => {
+    const { body } = render("> [!info] See\n> Refer to [[kostka-2018]].\n", "Title");
+    expect(hrefs(body)).toContain("/notes/kostka-2018");
+  });
+
+  it("leaves a plain blockquote (no marker) untouched", () => {
+    const { body } = render("> Just a quote.\n", "Title");
+    expect(withClass(body, "callout")).toHaveLength(0);
+    expect(tagNames(body).has("blockquote")).toBe(true);
   });
 });

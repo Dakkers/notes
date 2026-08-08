@@ -1,7 +1,8 @@
-import { Button, Icon } from "@saintly-software/baritone";
-import { Link } from "@tanstack/react-router";
+import { Button, Icon, Link } from "@saintly-software/baritone";
+import { Link as RouterLink } from "@tanstack/react-router";
 import type { Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
+import { Maximize, X } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -10,57 +11,44 @@ import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 // Internal note links are the `/notes/<slug>` anchors the build-time renderer
 // emits for resolved `[[wikilinks]]` (see `#/lib/notes/render`). Routing them
 // through TanStack `<Link>` gives SPA navigation + intent preloading; anything
-// else (external URLs, unresolved links — which aren't anchors at all) is left
-// as a plain `<a>`.
+// else (external URLs, unresolved links — which aren't anchors at all) is a
+// Baritone `<Link>` rendering a plain `<a>`.
 const INTERNAL_HREF = /^\/notes\/(.+)$/;
 
 function Anchor({ href, children, ...rest }: ComponentProps<"a">) {
   const slug = typeof href === "string" ? INTERNAL_HREF.exec(href)?.[1] : undefined;
   if (slug !== undefined) {
     return (
-      <Link
+      <RouterLink
         to="/notes/$slug"
         params={{ slug: decodeURIComponent(slug) }}
         className={rest.className}
       >
         {children}
-      </Link>
+      </RouterLink>
     );
   }
+  // `render={<a />}` opts this link out of the root `LinkProvider`: everything
+  // reaching here is either external or a same-page/section anchor (a footnote
+  // ref, a `/references#short-form` citation), none of which the router should
+  // take over.
   return (
-    <a href={href} {...rest}>
+    <Link render={<a />} href={href} {...rest}>
       {children}
-    </a>
+    </Link>
   );
 }
 
-// The two glyphs, as `<Icon>`-ready SVGs (sized in `em`, coloured by `currentColor`
-// so they inherit the surrounding Baritone `Button`'s text colour).
+// The two glyphs, as `<Icon>`-ready Lucide icons (sized in `em`, coloured by
+// `currentColor` so they inherit the surrounding Baritone `Button`'s text colour).
 const ExpandGlyph = (
   <Icon label="Expand">
-    <svg viewBox="0 0 24 24" width="1em" height="1em">
-      <path
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 3H3v6M15 3h6v6M21 15v6h-6M3 15v6h6"
-      />
-    </svg>
+    <Maximize size="1em" />
   </Icon>
 );
 const CloseGlyph = (
   <Icon label="Close">
-    <svg viewBox="0 0 24 24" width="1em" height="1em">
-      <path
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        d="M6 6l12 12M18 6L6 18"
-      />
-    </svg>
+    <X size="1em" />
   </Icon>
 );
 

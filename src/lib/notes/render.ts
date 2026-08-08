@@ -49,6 +49,23 @@ function fileStem(reference: string): string {
   return base.replace(/\.[^.]+$/, "");
 }
 
+// A wikilink into the vault's `Sources/` folder — a bibliography citation. That
+// folder isn't ingested as notes (it's mirrored on the References page instead,
+// see `#/lib/references`), so these resolve to a page anchor rather than a note.
+const SOURCE_LINK_RE = /^sources[\\/]+(.+)$/i;
+
+/**
+ * The short form of a `[[Sources/<short-form>]]` citation (dropping any
+ * `#heading`/`#^block` suffix), or null if the target isn't a `Sources/` link.
+ * The short form is the `Sources/…` filename, which is also the id of the matching
+ * row on the References page — so the citation links to `/references#<short-form>`.
+ */
+function sourceShortForm(target: string): string | null {
+  const path = target.split(/[#^]/, 1)[0].trim();
+  const match = SOURCE_LINK_RE.exec(path);
+  return match === null ? null : match[1].trim();
+}
+
 /**
  * Build the mdast node a single `[[wikilink]]` / `![[embed]]` becomes. `pipe` is
  * the raw text after the `|`, if any — a display alias for a note link, or a
@@ -75,6 +92,18 @@ function linkNode(
       }
       return { type: "image", url: att.url, alt: fileStem(target), data: { hProperties } };
     }
+  }
+
+  // A `[[Sources/…]]` citation points at the bibliography on the References page,
+  // not at a note. (Embeds don't transclude sources, so only plain links qualify.)
+  const source = embed ? null : sourceShortForm(target);
+  if (source !== null) {
+    return {
+      type: "link",
+      url: `/references#${encodeURIComponent(source)}`,
+      data: { hProperties: { className: ["wikilink", "reference-link"] } },
+      children: [{ type: "text", value: (pipe ?? source).trim() }],
+    };
   }
 
   const label = (pipe ?? target).trim();
@@ -151,6 +180,126 @@ function remarkAttachmentImages(attachments: AttachmentIndex) {
   };
 }
 
+// An Obsidian callout marker opening a blockquote's first line: `[!type]`, an
+// optional fold sign (`+` = collapsible+open, `-` = collapsible+collapsed), then
+// an optional title. e.g. `> [!warning]- Heads up`.
+const CALLOUT_RE = /^\[!([\w-]+)\]([+-]?)[ \t]*(.*)$/;
+
+/** `"info"` → `"Info"` — the fallback callout title when the marker gives none. */
+function titleCase(type: string): string {
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+/**
+ * Expand Obsidian callouts — a blockquote whose first line is `[!type]` — into a
+ * styled card. The optional fold sign makes it collapsible: `+` open, `-` closed;
+ * those become a native `<details>`/`<summary>` (so collapsing needs no client
+ * JS), while a non-foldable callout is a plain `<div>`. The rest of the first line
+ * is the title (defaulting to the capitalised type); everything after is the body.
+ *
+ * Runs before {@link remarkObsidianLinks}/{@link remarkMath}'s effect matters:
+ * those visit `text` nodes wherever they sit, so `[[wikilinks]]` and `$math$`
+ * inside a callout's title or body still resolve. A blockquote without the marker
+ * is left untouched (a normal quote).
+ */
+function remarkCallouts() {
+  return (tree: Root) => {
+    visit(tree, "blockquote", (node, index, parent) => {
+      if (parent === undefined || index === undefined) return;
+      const head = node.children[0];
+      if (head?.type !== "paragraph") return;
+      const lead = head.children[0];
+      if (lead?.type !== "text") return;
+
+      // Match the marker against the first line only; a soft line break inside the
+      // leading text node means the title ends there and the rest is body.
+      const newlineAt = lead.value.indexOf("\n");
+      const firstLine = newlineAt === -1 ? lead.value : lead.value.slice(0, newlineAt);
+      const match = CALLOUT_RE.exec(firstLine);
+      if (match === null) return;
+
+      const [, typeRaw, fold, titleText] = match;
+      const type = typeRaw.toLowerCase();
+      const foldable = fold !== "";
+      const expanded = fold !== "-";
+      // Length of the `[!type]<fold>` marker + trailing space that precede the title.
+      const markerLen = firstLine.length - titleText.length;
+
+      // Walk the first paragraph's inline children, stripping the marker and
+      // splitting title from any body text that follows a soft line break.
+      const titleInline: RootContent[] = [];
+      const leadBody: RootContent[] = [];
+      let inBody = false;
+      head.children.forEach((child, i) => {
+        let c = child;
+        if (i === 0 && c.type === "text") c = { ...c, value: c.value.slice(markerLen) };
+        if (inBody) {
+          leadBody.push(c);
+          return;
+        }
+        if (c.type === "text") {
+          const nl = c.value.indexOf("\n");
+          if (nl === -1) {
+            titleInline.push(c);
+          } else {
+            const before = c.value.slice(0, nl);
+            const after = c.value.slice(nl + 1);
+            if (before !== "") titleInline.push({ type: "text", value: before });
+            if (after !== "") leadBody.push({ type: "text", value: after });
+            inBody = true;
+          }
+        } else {
+          titleInline.push(c);
+        }
+      });
+
+      const isBlank = (n: RootContent) => n.type === "text" && n.value.trim() === "";
+      const hasTitle = titleInline.some((n) => !isBlank(n));
+      const titleChildren: RootContent[] = hasTitle
+        ? titleInline
+        : [{ type: "text", value: titleCase(type) }];
+
+      // Body: any inline remainder from the first line becomes a leading paragraph,
+      // then the blockquote's remaining blocks.
+      const leadBodyKept = leadBody.filter((n) => !isBlank(n));
+      const bodyChildren: RootContent[] = [];
+      if (leadBodyKept.length > 0)
+        bodyChildren.push({ type: "paragraph", children: leadBodyKept } as RootContent);
+      bodyChildren.push(...node.children.slice(1));
+
+      const hProperties: Record<string, unknown> = { className: ["callout", `callout-${type}`] };
+      // `<details open>` starts expanded; a collapsed one omits `open`.
+      if (foldable && expanded) hProperties.open = true;
+
+      // Custom node types fall through to the generic mdast→hast element path,
+      // which honours `hName`/`hProperties` and recurses into `children` (same
+      // mechanism as {@link embedContainer}).
+      const callout = {
+        type: "callout",
+        data: { hName: foldable ? "details" : "div", hProperties },
+        children: [
+          {
+            type: "calloutTitle",
+            data: {
+              hName: foldable ? "summary" : "div",
+              hProperties: { className: ["callout-title"] },
+            },
+            children: titleChildren,
+          },
+          {
+            type: "calloutBody",
+            data: { hName: "div", hProperties: { className: ["callout-content"] } },
+            children: bodyChildren,
+          },
+        ],
+      } as unknown as RootContent;
+
+      parent.children[index] = callout;
+      return [SKIP, index];
+    });
+  };
+}
+
 /**
  * Headings pass, keyed to the note's title (carried on the VFile):
  *  1. Drop a leading heading that only restates the title — the page already
@@ -175,8 +324,14 @@ function remarkHeadings() {
   };
 }
 
-/** The raw markdown + title of a note, keyed by slug — what a `![[note]]` embed pulls in. */
-export type NoteSources = ReadonlyMap<string, { raw: string; title: string }>;
+/**
+ * The raw markdown + title of a note, keyed by slug — what a `![[note]]` embed
+ * pulls in. `routable` is whether the source note has its own `/notes/<slug>`
+ * page; when `false` (a transclusion-only source, e.g. a `_Meta/Embed` snippet)
+ * the transcluded card omits its back-link, since there's nothing to link to.
+ * Absent → treated as routable.
+ */
+export type NoteSources = ReadonlyMap<string, { raw: string; title: string; routable?: boolean }>;
 
 /** Turn an mdast subtree into the note's mdast body children, for transclusion. */
 type RenderInner = (raw: string, title: string, stack: string[]) => RootContent[];
@@ -224,27 +379,34 @@ function stripFootnotes(tree: Root): void {
 /**
  * The mdast node a transcluded note becomes: a `.embed` card wrapping the embedded
  * body, with a link back to the source note underneath (Obsidian shows the same
- * affordance). Built with `hName`/`hProperties` so it converts to plain `<div>`s.
+ * affordance) — omitted when the source has no page of its own (`routable` false).
+ * Built with `hName`/`hProperties` so it converts to plain `<div>`s.
  */
-function embedContainer(children: RootContent[], url: string, title: string): RootContent {
+function embedContainer(
+  children: RootContent[],
+  url: string,
+  title: string,
+  routable: boolean,
+): RootContent {
+  const content: RootContent = {
+    type: "embedContent",
+    data: { hName: "div", hProperties: { className: ["embed-content"] } },
+    children,
+  } as unknown as RootContent;
+  // A transclusion-only source (e.g. a `_Meta/Embed` snippet) has no route, so
+  // there's nothing to link back to — render just the content.
+  const backLink: RootContent = {
+    type: "link",
+    url,
+    data: { hProperties: { className: ["embed-link"] } },
+    children: [{ type: "text", value: title }],
+  };
   // Custom node types (no mdast→hast handler) fall through to the generic element
   // path, which honours `data.hName`/`hProperties` and recurses into `children`.
   return {
     type: "embedContainer",
     data: { hName: "div", hProperties: { className: ["embed"] } },
-    children: [
-      {
-        type: "embedContent",
-        data: { hName: "div", hProperties: { className: ["embed-content"] } },
-        children,
-      },
-      {
-        type: "link",
-        url,
-        data: { hProperties: { className: ["embed-link"] } },
-        children: [{ type: "text", value: title }],
-      },
-    ],
+    children: routable ? [content, backLink] : [content],
   } as unknown as RootContent;
 }
 
@@ -273,7 +435,12 @@ function remarkNoteEmbeds(sources: NoteSources, renderInner: RenderInner) {
       if (source === undefined || stack.includes(slug) || stack.length >= MAX_EMBED_DEPTH) return;
 
       const children = renderInner(source.raw, source.title, [...stack, slug]);
-      parent.children[index] = embedContainer(children, link.url, source.title);
+      parent.children[index] = embedContainer(
+        children,
+        link.url,
+        source.title,
+        source.routable !== false,
+      );
       return [SKIP, index + 1];
     });
   };
@@ -344,6 +511,9 @@ export function createNoteRenderer(
     // Parse `$…$` / `$$…$$` into math nodes before the text-node transforms below,
     // so a `$`-delimited expression is never mistaken for prose or a `[[wikilink]]`.
     .use(remarkMath)
+    // Turn `> [!type]` blockquotes into callout cards before the text-node passes
+    // below, which still reach the `[[wikilinks]]`/`$math$` inside a callout.
+    .use(remarkCallouts)
     .use(remarkObsidianLinks, resolve, attachments)
     .use(remarkAttachmentImages, attachments)
     .use(remarkHeadings)
