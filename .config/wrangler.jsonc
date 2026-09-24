@@ -1,5 +1,5 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
+  "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "obsidian-site-v3",
   // Matches the installed `workerd` (1.20260801.x). Bump alongside workerd upgrades.
   "compatibility_date": "2026-08-01",

@@ -11,7 +11,7 @@
     "build": "vite build --config .config/vite.config.ts",
     "preview": "pnpm run build && vite preview --config .config/vite.config.ts",
     "deploy": "pnpm run build && wrangler deploy",
-    "cf-typegen": "wrangler types",
+    "cf-typegen": "wrangler types --config .config/wrangler.jsonc",
     "generate-routes": "tsr generate",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config .config/vitest.config.ts",

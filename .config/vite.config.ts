@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
     // so the virtual module is resolvable everywhere they render. `viteEnvironment`
     // maps the Worker onto TanStack Start's `ssr` environment.
     plugins: [
-      cloudflare({ viteEnvironment: { name: "ssr" } }),
+      cloudflare({ configPath: ".config/wrangler.jsonc", viteEnvironment: { name: "ssr" } }),
       demoNotes({
         dir: NOTES_DIR || undefined,
         attachmentsDir: ATTACHMENTS_DIR || undefined,
