@@ -89,12 +89,15 @@ function NotesIndex() {
                   <ChipList
                     size="sm"
                     saliency="low"
-                    items={shown.map((tag) => ({
-                      id: tag,
-                      children: tag,
-                      intent: tagIntent(tag),
-                      render: <Link to="/notes" search={{ tags: [tag] }} />,
-                    }))}
+                    items={shown.map((tag) => (
+                      <ChipList.Item
+                        key={tag}
+                        intent={tagIntent(tag)}
+                        render={<Link to="/notes" search={{ tags: [tag] }} />}
+                      >
+                        {tag}
+                      </ChipList.Item>
+                    ))}
                   />
                 )}
                 <Text as="span" size="sm" saliency="low">
