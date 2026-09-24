@@ -16,10 +16,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config .config/vitest.config.ts",
     "test:watch": "vitest --config .config/vitest.config.ts",
-    "fmt": "oxfmt --config .config/.oxfmtrc.json . '!src/routeTree.gen.ts'",
-    "fmt:check": "oxfmt --config .config/.oxfmtrc.json --check . '!src/routeTree.gen.ts'",
-    "lint": "oxlint --config .config/.oxlintrc.json --fix",
-    "lint:check": "oxlint --config .config/.oxlintrc.json"
+    "fmt": "oxfmt --config .config/oxfmt.config.ts . '!src/routeTree.gen.ts'",
+    "fmt:check": "oxfmt --config .config/oxfmt.config.ts --check . '!src/routeTree.gen.ts'",
+    "lint": "oxlint --config .config/oxlint.config.ts --fix",
+    "lint:check": "oxlint --config .config/oxlint.config.ts"
   },
   "dependencies": {
     "@saintly-software/baritone": "1.0.0-alpha.2",
