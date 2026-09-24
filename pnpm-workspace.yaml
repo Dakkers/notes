@@ -6,3 +6,4 @@ blockExoticSubdeps: true
 trustPolicy: no-downgrade
 strictDepBuilds: true
 savePrefix: ""
+trustPolicyIgnoreAfter: 43200
