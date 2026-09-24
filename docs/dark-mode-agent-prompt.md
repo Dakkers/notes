@@ -3,7 +3,7 @@
 You are implementing a real, app-wide dark mode for this TanStack Start + React +
 Baritone site. Today the app is **light-only**, with a couple of ad-hoc partial
 dark overrides bolted on that don't actually work together. Your job is to make
-one coherent theming system that flips the *entire* UI — Baritone chrome and the
+one coherent theming system that flips the _entire_ UI — Baritone chrome and the
 hand-rolled note prose alike — between light and dark.
 
 Work in small, verified steps. Read the referenced files before changing them,
@@ -32,17 +32,19 @@ media query on its own; see below).
 ## How theming works today (ground truth — verify as you go)
 
 **Baritone is mounted light-only.**
+
 - `src/routes/__root.tsx:36` renders `<BaritoneTheme tokens={tokens} scheme="light" render={<body />}>`.
 - `tokens` comes from `buildAppTokens()` in `src/lib/theme.ts`, which is hardcoded
   to `buildDefaultTokens("light")`.
 - Baritone's API (verified in its `.d.ts`):
   `buildDefaultTokens(scheme: "light" | "dark", brand?)` returns a token set, and
   `BaritoneTheme` requires **matching** `tokens` **and** `scheme` props. Theme
-  scopes nest, and the component only supplies token *values* (the compiled
+  scopes nest, and the component only supplies token _values_ (the compiled
   `styles.css` is imported once in `src/styles/styles.css`). **Baritone has no
   awareness of `prefers-color-scheme`** — the scheme is whatever prop you pass.
 
 **Baritone design tokens auto-follow the mounted scheme.**
+
 - `src/components/NoteBody.tsx` bridges Baritone intent tokens into CSS variables
   for callouts via `vars.surface.color[intent]...` (e.g. `--cx-primary-bg`).
   Because `vars.*` are references to the custom properties `BaritoneTheme` sets,
@@ -50,6 +52,7 @@ media query on its own; see below).
   mounted — no change needed here**, but you must re-verify callout contrast in dark.
 
 **The note prose has its own hand-rolled palette with a partial dark override.**
+
 - `src/styles/prose.css` defines a `--prose-*` palette (`--prose-fg`, `-muted`,
   `-accent`, `-rule`, `-code-bg`) around line 8–16 and 166–170, with a
   `@media (prefers-color-scheme: dark)` block near **line 440** that swaps them.
@@ -61,16 +64,18 @@ media query on its own; see below).
   not on `prefers-color-scheme` alone.
 
 **There is a light-pin hack to remove.**
+
 - `src/styles/prose.css` `.prose .callout { ... }` currently pins `--prose-*` to
-  light hex values (with a comment explaining it exists *only because Baritone is
-  light-only*). Once a real dark scheme is mounted, this makes callout text
+  light hex values (with a comment explaining it exists _only because Baritone is
+  light-only_). Once a real dark scheme is mounted, this makes callout text
   light-on-dark-pinned-light — wrong. **Remove/rework this block** and let callouts
   inherit the active prose palette + Baritone tokens. Re-verify callout readability
   in both modes afterward.
 
 **SSR specifics.**
+
 - TanStack Start SSR; `src/routes/__root.tsx` renders `<html lang="en"
-  suppressHydrationWarning>` and links `reset.css` then `styles.css` in `head`.
+suppressHydrationWarning>` and links `reset.css` then `styles.css` in `head`.
 - Anything theme-related rendered on the server must not mismatch the client on
   hydration, and there must be **no flash** of the wrong theme before paint.
 
@@ -99,7 +104,7 @@ media query on its own; see below).
 4. **Unify the prose + references palettes with the toggle.**
    - Make `--prose-*` (`prose.css`) and `--ref-*` (`references.css`) respond to
      `:root[data-theme="dark"]` (and, if you keep OS-follow as the default,
-     *also* `@media (prefers-color-scheme: dark)` scoped to the no-explicit-choice
+     _also_ `@media (prefers-color-scheme: dark)` scoped to the no-explicit-choice
      case). Prefer one mechanism consistently.
    - **Better, if practical:** derive these palette values from Baritone tokens
      (`vars.*`) so there's a single source of truth and they can never desync.
@@ -119,7 +124,7 @@ media query on its own; see below).
 - **No FOUC, no hydration mismatch.** The server can't know the client's stored
   choice; the inline script + `suppressHydrationWarning` is the standard fix. Keep
   server output theme-neutral and let the script + client state settle it.
-- **One signal.** Baritone (prop) and the CSS palettes must key off the *same*
+- **One signal.** Baritone (prop) and the CSS palettes must key off the _same_
   effective scheme. Mixing a manual toggle with `@media`-only CSS is exactly the
   current bug — don't reproduce it.
 - **Don't ship extra weight to the client.** No new heavy deps; the markdown
