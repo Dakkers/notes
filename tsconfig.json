@@ -1,5 +1,11 @@
 {
-  "include": ["src", ".config/vite.config.ts", ".config/vitest.config.ts"],
+  "include": [
+    "src",
+    ".config/vite.config.ts",
+    ".config/vitest.config.ts",
+    ".config/vitest.setup.ts",
+    ".storybook"
+  ],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",
