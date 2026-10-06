@@ -164,10 +164,16 @@ const calloutTokens = Object.fromEntries(
   }),
 ) as CSSProperties;
 
+const proseTokens = {
+  ...calloutTokens,
+  "--prose-fg": vars.text.color.neutral.high,
+  "--prose-muted": vars.text.color.neutral.low,
+} as CSSProperties;
+
 /** Render a note's body hast tree to React inside the prose typography scope. */
 export function NoteBody({ tree }: { tree: Root }) {
   return (
-    <div className="prose" style={calloutTokens}>
+    <div className="prose" style={proseTokens}>
       {renderNoteHast(tree)}
     </div>
   );

@@ -39,10 +39,3 @@
 .references-table tr:target td {
   background: color-mix(in srgb, var(--ref-muted) 12%, transparent);
 }
-
-@media (prefers-color-scheme: dark) {
-  .references-table {
-    --ref-rule: #3a3a3e;
-    --ref-muted: #9ca3af;
-  }
-}

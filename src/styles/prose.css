@@ -437,16 +437,6 @@
   opacity: 0.7;
 }
 
-@media (prefers-color-scheme: dark) {
-  .prose {
-    --prose-fg: #e6e6e8;
-    --prose-muted: #9ca3af;
-    --prose-accent: #8aa0ff;
-    --prose-rule: #3a3a3e;
-    --prose-code-bg: #26262a;
-  }
-}
-
 /*
  * The "view raw markdown" modal body (see `#/components/RawMarkdownModal`). The
  * modal renders through a portal, outside `.prose`, so this is self-contained.
