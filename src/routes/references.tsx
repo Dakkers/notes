@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Flex, Heading, Link, Text } from "@saintly-software/baritone";
+import type { CSSProperties } from "react";
+import { Flex, Heading, Link, Text, vars } from "@saintly-software/baritone";
 
 import { SOURCES } from "../lib/references";
 import referencesCss from "../styles/references.css?url";
@@ -11,6 +12,11 @@ export const Route = createFileRoute("/references")({
   }),
   component: References,
 });
+
+const referenceTokens = {
+  "--ref-rule": vars.surface.color.neutral.low.default.border,
+  "--ref-muted": vars.text.color.neutral.low,
+} as CSSProperties;
 
 function References() {
   return (
@@ -27,7 +33,7 @@ function References() {
           citation (author, title as a `<cite>`, publication details). Each row
           carries its short form as an `id`, so `/references#caplin-1998` scrolls
           straight to it. Online sources link from the title. */}
-      <table className="references-table">
+      <table className="references-table" style={referenceTokens}>
         <thead>
           <tr>
             <Text render={<th scope="col" />} size="sm" saliency="low">

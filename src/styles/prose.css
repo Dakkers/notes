@@ -8,11 +8,7 @@
 .prose {
   max-width: 42rem;
   line-height: 1.65;
-  color: var(--prose-fg, #1c1c1e);
-  --prose-muted: #6b7280;
-  --prose-accent: #3f5bd9;
-  --prose-rule: #e4e4e7;
-  --prose-code-bg: #f2f2f4;
+  color: var(--prose-fg);
 }
 
 /* Vertical rhythm: every block gets top spacing, collapsed at the very start. */
@@ -158,17 +154,6 @@
   --callout-accent: var(--cx-primary-accent);
   --callout-border: var(--cx-primary-border);
   --callout-icon: "ℹ";
-  /* The card is a Baritone surface, and Baritone is mounted light-only (see
-   * `__root.tsx`). So pin the prose palette to its light values here: without it,
-   * the page's dark-mode prose colours (light text/links) would be unreadable on
-   * this light Baritone background. `color` is re-set so descendants re-resolve
-   * against the local `--prose-fg`. */
-  --prose-fg: #1c1c1e;
-  --prose-muted: #6b7280;
-  --prose-accent: #3f5bd9;
-  --prose-rule: #e4e4e7;
-  --prose-code-bg: #f2f2f4;
-  color: var(--prose-fg);
   border: 1px solid var(--callout-border);
   border-radius: 8px;
   padding: 0.75em 1.1em;

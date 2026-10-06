@@ -5,8 +5,6 @@
  * palette so the two read as one system in both light and dark.
  */
 .references-table {
-  --ref-rule: #e2e2e6;
-  --ref-muted: #6b7280;
   width: 100%;
   border-collapse: collapse;
   /* Keep the short-form column tight and the citation column elastic. */

@@ -168,6 +168,9 @@ const proseTokens = {
   ...calloutTokens,
   "--prose-fg": vars.text.color.neutral.high,
   "--prose-muted": vars.text.color.neutral.low,
+  "--prose-accent": vars.text.color.primary.high,
+  "--prose-rule": vars.surface.color.neutral.low.default.border,
+  "--prose-code-bg": vars.surface.color.neutral.high.default.bgc,
 } as CSSProperties;
 
 /** Render a note's body hast tree to React inside the prose typography scope. */
