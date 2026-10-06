@@ -3,7 +3,7 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 
-import { demoNotes } from "../src/lib/notes/plugin";
+import { demoNotes } from "../src/lib/notes/plugin.ts";
 
 // This file lives in `.config/`, but Vite's `root` stays the project root — it
 // defaults to the cwd, not to the config file's directory. So any project-

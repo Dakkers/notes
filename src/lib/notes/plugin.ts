@@ -4,11 +4,11 @@ import { extname, join, resolve } from "node:path";
 import type { Root as HastRoot } from "hast";
 import type { Plugin } from "vite";
 
-import { type Attachment, buildAttachmentIndex, IMAGE_MIME } from "./attachments";
-import { attachBacklinks, attachOutgoingLinks, buildResolver } from "./graph";
-import { parseNote } from "./parse";
-import { createNoteRenderer } from "./render";
-import type { Note } from "./types";
+import { type Attachment, buildAttachmentIndex, IMAGE_MIME } from "./attachments.ts";
+import { attachBacklinks, attachOutgoingLinks, buildResolver } from "./graph.ts";
+import { parseNote } from "./parse.ts";
+import { createNoteRenderer } from "./render.ts";
+import type { Note } from "./types.ts";
 
 // Two modules from one scan: lightweight metadata, and the heavier rendered body
 // trees. Rollup convention: a resolved virtual id is prefixed with `\0` so other

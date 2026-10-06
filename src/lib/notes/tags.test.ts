@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isHiddenTag, tagIntent, visibleTags } from "./tags";
+import { isHiddenTag, tagIntent, visibleTags } from "./tags.ts";
 
 describe("isHiddenTag", () => {
   it("hides the Meta namespace root and any nesting beneath it", () => {

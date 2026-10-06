@@ -2,8 +2,8 @@ import type { Element, Root } from "hast";
 import { visit } from "unist-util-visit";
 import { describe, expect, it } from "vitest";
 
-import type { AttachmentIndex } from "./attachments";
-import { createNoteRenderer } from "./render";
+import type { AttachmentIndex } from "./attachments.ts";
+import { createNoteRenderer } from "./render.ts";
 
 // A resolver that knows one source note, so `[[kostka-2018]]` inside a footnote
 // becomes a real link and anything else stays unresolved.

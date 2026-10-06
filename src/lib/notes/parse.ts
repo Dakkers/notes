@@ -5,7 +5,7 @@ import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
 
-import type { Note, NoteLink } from "./types";
+import type { Note, NoteLink } from "./types.ts";
 
 // Markdown structure (frontmatter split, heading nodes, code fencing) is handled
 // by gray-matter + remark. The only bespoke patterns are the two Obsidian
