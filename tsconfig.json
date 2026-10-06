@@ -1,6 +1,7 @@
 {
   "include": [
     "src",
+    ".config/check-deploy-env.ts",
     ".config/vite.config.ts",
     ".config/vitest.config.ts",
     ".config/vitest.setup.ts",
