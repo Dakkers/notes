@@ -44,11 +44,40 @@ The dev server runs at http://localhost:3000.
 | `pnpm dev`                 | Start the dev server on port 3000             |
 | `pnpm build`               | Production build (client + SSR)               |
 | `pnpm preview`             | Build, then serve the production build        |
+| `pnpm run deploy`          | Build from the vault and deploy to Cloudflare |
 | `pnpm generate-routes`     | Regenerate `src/routeTree.gen.ts` from routes |
 | `pnpm typecheck`           | `tsc --noEmit`                                |
 | `pnpm test`                | Run tests once                                |
 | `pnpm lint` / `lint:check` | Lint (with/without autofix)                   |
 | `pnpm fmt` / `fmt:check`   | Format (write/check)                          |
+
+## Notes
+
+The vault is never committed. Notes are read at build time from the paths in
+`.config/.env.local` (gitignored); without them, the `.demo` fixtures are used.
+
+```bash
+NOTES_DIR=/path/to/vault/Notes
+ATTACHMENTS_DIR=/path/to/vault/Files
+EMBEDS_DIR=/path/to/vault/_Meta/Embed
+```
+
+Only `NOTES_DIR` is required. `ATTACHMENTS_DIR` enables image embeds, and
+`EMBEDS_DIR` enables transclusion-only snippets.
+
+## Deploying
+
+Production deploys run locally, from a machine that has the vault. CI only runs
+format, lint and type checks.
+
+```bash
+pnpm exec wrangler login
+pnpm run deploy
+```
+
+`wrangler login` is needed once per machine. `pnpm run deploy` refuses to run
+unless `NOTES_DIR` is set and every configured vault path exists, so it can't
+publish the demo notes by mistake.
 
 ## Adding a route
 
