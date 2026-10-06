@@ -10,9 +10,18 @@
     {
       "name": "dev-alt",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["exec", "vite", "dev", "--config", ".config/vite.config.ts"],
+      "runtimeArgs": [
+        "exec",
+        "vite",
+        "dev",
+        "--config",
+        ".config/vite.config.ts",
+        "--port",
+        "3100",
+        "--strictPort"
+      ],
       "port": 3100,
-      "autoPort": true
+      "autoPort": false
     }
   ]
 }
