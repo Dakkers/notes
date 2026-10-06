@@ -11,6 +11,7 @@
   // client bundle + emitted `/attachments` to `dist/client/`, which is auto-served
   // as static assets. Unmatched routes fall through to this worker for SSR.
   "main": "@tanstack/react-start/server-entry",
+  "routes": [{ "pattern": "notes.dakota-stlaurent.com", "custom_domain": true }],
   "observability": {
     "enabled": true,
   },
