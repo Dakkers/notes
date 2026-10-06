@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { Flex, Heading, Text } from "@saintly-software/baritone";
 
 import { notes } from "virtual:demo-notes";
@@ -13,7 +14,15 @@ import proseCss from "../styles/prose.css?url";
 // assets; a bare `?url` link would leave those font paths dangling.
 import "katex/dist/katex.min.css";
 
+const getNoteContent = createServerFn({ method: "GET" })
+  .inputValidator((slug: string) => slug)
+  .handler(({ data: slug }) => {
+    const tree = content[slug];
+    return tree === undefined ? null : { tree, footnotes: footnotes[slug], raw: raw[slug] };
+  });
+
 export const Route = createFileRoute("/notes/$slug")({
+  loader: ({ params }) => getNoteContent({ data: params.slug }),
   head: ({ params }) => {
     const note = notes.find((candidate) => candidate.slug === params.slug);
     return {
@@ -28,9 +37,9 @@ export const Route = createFileRoute("/notes/$slug")({
 function NotePage() {
   const { slug } = Route.useParams();
   const note = notes.find((candidate) => candidate.slug === slug);
-  const tree = content[slug];
+  const body = Route.useLoaderData();
 
-  if (note === undefined || tree === undefined) {
+  if (note === undefined || body === null) {
     return (
       <Flex direction="column" gap="3">
         <Heading level={1}>Note not found</Heading>
@@ -57,11 +66,11 @@ function NotePage() {
           /* The body tree is produced at build/dev time by the `demoNotes()` plugin
              (`#/lib/notes/render`); `NoteBody` turns it into React so `[[wikilinks]]`
              navigate through the router. */
-          <NoteBody tree={tree} />
+          <NoteBody tree={body.tree} />
         )}
       </Flex>
 
-      <NoteInfoPanel note={note} footnotes={footnotes[slug]} raw={raw[slug]} />
+      <NoteInfoPanel note={note} footnotes={body.footnotes} raw={body.raw} />
     </Flex>
   );
 }
