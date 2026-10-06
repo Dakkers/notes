@@ -1,4 +1,4 @@
-import type { Backlink, Note, OutgoingLink } from "./types";
+import type { Backlink, Note, OutgoingLink } from "./types.ts";
 
 /**
  * Resolve a wikilink target (a note name or Zettelkasten id, possibly with a

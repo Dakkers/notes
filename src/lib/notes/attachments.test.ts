@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { buildAttachmentIndex, emptyAttachmentIndex } from "./attachments";
+import { buildAttachmentIndex, emptyAttachmentIndex } from "./attachments.ts";
 
 // A throwaway vault with a couple of images (one nested), a duplicate of one by a
 // different name, and a non-image file — enough to exercise resolution, hashing,

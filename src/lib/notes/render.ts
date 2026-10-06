@@ -11,8 +11,8 @@ import { unified } from "unified";
 import { SKIP, visit } from "unist-util-visit";
 import { VFile } from "vfile";
 
-import { type AttachmentIndex, emptyAttachmentIndex } from "./attachments";
-import type { ResolveTarget } from "./graph";
+import { type AttachmentIndex, emptyAttachmentIndex } from "./attachments.ts";
+import type { ResolveTarget } from "./graph.ts";
 
 const LINK_RE = /(!?)\[\[([^\]]+)\]\]/g;
 // How deeply `![[note]]` transclusions may nest before we stop expanding and fall

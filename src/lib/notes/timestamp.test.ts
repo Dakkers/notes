@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatWrittenAt } from "./timestamp";
+import { formatWrittenAt } from "./timestamp.ts";
 
 describe("formatWrittenAt", () => {
   it("formats a full YYYYMMDDHHmmss id as a date plus 24-hour time", () => {

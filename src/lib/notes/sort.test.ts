@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { byTitle } from "./sort";
+import { byTitle } from "./sort.ts";
 
 const order = (titles: string[]) =>
   titles

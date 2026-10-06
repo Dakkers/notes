@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { attachBacklinks, attachOutgoingLinks, buildResolver } from "./graph";
-import type { Note } from "./types";
+import { attachBacklinks, attachOutgoingLinks, buildResolver } from "./graph.ts";
+import type { Note } from "./types.ts";
 
 function note(over: Partial<Note>): Note {
   return {

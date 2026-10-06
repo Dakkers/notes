@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseNote } from "./parse";
+import { parseNote } from "./parse.ts";
 
 describe("parseNote", () => {
   it("splits the Zettelkasten id from the title", () => {
