@@ -1,15 +1,9 @@
 import { HeadContent, Link as RouterLink, Scripts, createRootRoute } from "@tanstack/react-router";
-import {
-  BaritoneTheme,
-  Flex,
-  LinkProvider,
-  type LinkRenderProps,
-  vars,
-} from "@saintly-software/baritone";
+import { Flex, LinkProvider, type LinkRenderProps, vars } from "@saintly-software/baritone";
 
 import { NavBar } from "../components/NavBar";
 import { Sidebar } from "../components/Sidebar";
-import { buildAppTokens } from "../lib/theme";
+import { buildThemeCss } from "../lib/theme";
 import resetCss from "../styles/reset.css?url";
 import sidebarCss from "../styles/sidebar.css?url";
 import baritoneCss from "../styles/styles.css?url";
@@ -65,26 +59,21 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const tokens = buildAppTokens();
+  const themeCss = buildThemeCss();
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       </head>
 
-      <BaritoneTheme
-        tokens={tokens}
-        scheme="light"
-        render={
-          <body
-            style={{
-              colorScheme: "light",
-              fontFamily: vars.font.sans,
-              backgroundColor: vars.surface.color.neutral.low.default.bgc,
-            }}
-          />
-        }
+      <body
+        style={{
+          fontFamily: vars.font.sans,
+          color: vars.text.color.neutral.high,
+          backgroundColor: vars.surface.color.neutral.low.default.bgc,
+        }}
       >
         <LinkProvider render={routerLink}>
           <Flex direction="column" style={{ minHeight: "100vh" }}>
@@ -101,7 +90,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         </LinkProvider>
 
         <Scripts />
-      </BaritoneTheme>
+      </body>
     </html>
   );
 }
