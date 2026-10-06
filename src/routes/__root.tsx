@@ -4,6 +4,7 @@ import {
   Flex,
   LinkProvider,
   type LinkRenderProps,
+  vars,
 } from "@saintly-software/baritone";
 
 import { NavBar } from "../components/NavBar";
@@ -72,7 +73,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
 
-      <BaritoneTheme tokens={tokens} scheme="light" render={<body />}>
+      <BaritoneTheme
+        tokens={tokens}
+        scheme="light"
+        render={
+          <body
+            style={{
+              colorScheme: "light",
+              fontFamily: vars.font.sans,
+              backgroundColor: vars.surface.color.neutral.low.default.bgc,
+            }}
+          />
+        }
+      >
         <LinkProvider render={routerLink}>
           <Flex direction="column" style={{ minHeight: "100vh" }}>
             <NavBar />
