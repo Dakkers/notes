@@ -243,7 +243,7 @@ describe("createNoteRenderer transclusion", () => {
   it("transcludes a standalone `![[note]]` into a `.embed` card with the target's body", () => {
     const { body } = renderEmbeds(embedSources.get("host")!.raw, "Host", "host");
 
-    const [embed, ...rest] = withClass(body, "embed");
+    const rest = withClass(body, "embed").slice(1);
     expect(rest).toHaveLength(0);
 
     const [content] = withClass(body, "embed-content");
@@ -253,11 +253,7 @@ describe("createNoteRenderer transclusion", () => {
     // …and its heading is demoted (never an <h1>, so it can't rival the host title).
     expect(tagNames(content).has("h1")).toBe(false);
 
-    // A link back to the source note sits inside the card, labelled with its title.
-    const back = withClass(embed, "embed-link");
-    expect(back).toHaveLength(1);
-    expect(back[0].properties?.href).toBe("/notes/target");
-    expect(textOf(back[0])).toContain("Target");
+    expect(withClass(body, "embed-link")).toHaveLength(0);
   });
 
   it("keeps resolving `[[wikilinks]]` inside a transcluded body", () => {

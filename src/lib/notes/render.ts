@@ -326,12 +326,9 @@ function remarkHeadings() {
 
 /**
  * The raw markdown + title of a note, keyed by slug — what a `![[note]]` embed
- * pulls in. `routable` is whether the source note has its own `/notes/<slug>`
- * page; when `false` (a transclusion-only source, e.g. a `_Meta/Embed` snippet)
- * the transcluded card omits its back-link, since there's nothing to link to.
- * Absent → treated as routable.
+ * pulls in.
  */
-export type NoteSources = ReadonlyMap<string, { raw: string; title: string; routable?: boolean }>;
+export type NoteSources = ReadonlyMap<string, { raw: string; title: string }>;
 
 /** Turn an mdast subtree into the note's mdast body children, for transclusion. */
 type RenderInner = (raw: string, title: string, stack: string[]) => RootContent[];
@@ -378,35 +375,20 @@ function stripFootnotes(tree: Root): void {
 
 /**
  * The mdast node a transcluded note becomes: a `.embed` card wrapping the embedded
- * body, with a link back to the source note underneath (Obsidian shows the same
- * affordance) — omitted when the source has no page of its own (`routable` false).
- * Built with `hName`/`hProperties` so it converts to plain `<div>`s.
+ * body. Built with `hName`/`hProperties` so it converts to plain `<div>`s.
  */
-function embedContainer(
-  children: RootContent[],
-  url: string,
-  title: string,
-  routable: boolean,
-): RootContent {
+function embedContainer(children: RootContent[]): RootContent {
   const content: RootContent = {
     type: "embedContent",
     data: { hName: "div", hProperties: { className: ["embed-content"] } },
     children,
   } as unknown as RootContent;
-  // A transclusion-only source (e.g. a `_Meta/Embed` snippet) has no route, so
-  // there's nothing to link back to — render just the content.
-  const backLink: RootContent = {
-    type: "link",
-    url,
-    data: { hProperties: { className: ["embed-link"] } },
-    children: [{ type: "text", value: title }],
-  };
   // Custom node types (no mdast→hast handler) fall through to the generic element
   // path, which honours `data.hName`/`hProperties` and recurses into `children`.
   return {
     type: "embedContainer",
     data: { hName: "div", hProperties: { className: ["embed"] } },
-    children: routable ? [content, backLink] : [content],
+    children: [content],
   } as unknown as RootContent;
 }
 
@@ -435,12 +417,7 @@ function remarkNoteEmbeds(sources: NoteSources, renderInner: RenderInner) {
       if (source === undefined || stack.includes(slug) || stack.length >= MAX_EMBED_DEPTH) return;
 
       const children = renderInner(source.raw, source.title, [...stack, slug]);
-      parent.children[index] = embedContainer(
-        children,
-        link.url,
-        source.title,
-        source.routable !== false,
-      );
+      parent.children[index] = embedContainer(children);
       return [SKIP, index + 1];
     });
   };

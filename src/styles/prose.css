@@ -110,9 +110,9 @@
 
 /*
  * A transcluded note (`![[note]]` on its own line): the embedded body rendered
- * inline, with a link back to the source underneath. No card chrome of its own —
- * the content flows as if written in place — but it still resets the prose vertical
- * rhythm for its own children so the embedded content spaces itself.
+ * inline. No card chrome of its own — the content flows as if written in place —
+ * but it still resets the prose vertical rhythm for its own children so the
+ * embedded content spaces itself.
  */
 .prose .embed-content > * + * {
   margin-top: 0.9em;
@@ -123,20 +123,6 @@
 /* Embedded headings shouldn't compete with the host note's outline. */
 .prose .embed-content :is(h1, h2, h3, h4, h5, h6) {
   font-size: 1em;
-}
-.prose .embed-link {
-  display: inline-block;
-  margin-top: 0.8em;
-  font-size: 0.85em;
-  color: var(--prose-muted);
-  text-decoration: none;
-}
-.prose .embed-link::before {
-  content: "↪ ";
-}
-.prose .embed-link:hover {
-  color: var(--prose-accent);
-  text-decoration: underline;
 }
 
 /*

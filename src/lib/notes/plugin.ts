@@ -113,14 +113,14 @@ export function demoNotes({
     const attachments = buildAttachmentIndex(attachmentsPath);
     // Raw bodies keyed by slug, so `![[note]]` embeds can transclude one another.
     const sources = new Map(
-      notes.map((note, i) => [note.slug, { raw: files[i].raw, title: note.title, routable: true }]),
+      notes.map((note, i) => [note.slug, { raw: files[i].raw, title: note.title }]),
     );
-    // Embed-only sources are transcludable and resolvable but have no page, so they
-    // render without the card's back-link. Registered after the routable notes and
-    // skipped on a slug collision, so a real note always wins.
+    // Embed-only sources are transcludable and resolvable but have no page.
+    // Registered after the routable notes and skipped on a slug collision, so a
+    // real note always wins.
     for (const [i, note] of embedNotes.entries()) {
       if (!sources.has(note.slug))
-        sources.set(note.slug, { raw: embedFiles[i].raw, title: note.title, routable: false });
+        sources.set(note.slug, { raw: embedFiles[i].raw, title: note.title });
     }
     const render = createNoteRenderer(resolve, attachments, sources);
 
