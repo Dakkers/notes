@@ -359,6 +359,10 @@
 .prose sup {
   font-size: 0.75em;
 }
+/* Adjacent citations (`[^1][^2]`) would otherwise read as one number ("12"). */
+.prose sup:has(> a[data-footnote-ref]) + sup:has(> a[data-footnote-ref])::before {
+  content: ",";
+}
 
 .prose table {
   width: 100%;
