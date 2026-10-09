@@ -37,3 +37,16 @@
 .references-table tr:target td {
   background: color-mix(in srgb, var(--ref-muted) 12%, transparent);
 }
+
+.references-table td p {
+  margin: 0;
+}
+
+.references-table td p + p {
+  color: var(--ref-muted);
+  font-size: 0.875em;
+}
+
+.references-table em {
+  font-style: italic;
+}
