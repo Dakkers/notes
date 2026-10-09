@@ -46,6 +46,7 @@ The dev server runs at http://localhost:3000.
 | `pnpm preview`             | Build, then serve the production build        |
 | `pnpm run deploy`          | Build from the vault and deploy to Cloudflare |
 | `pnpm generate-routes`     | Regenerate `src/routeTree.gen.ts` from routes |
+| `pnpm references`          | Regenerate the References page from the vault |
 | `pnpm typecheck`           | `tsc --noEmit`                                |
 | `pnpm test`                | Run tests once                                |
 | `pnpm lint` / `lint:check` | Lint (with/without autofix)                   |
@@ -60,10 +61,22 @@ The vault is never committed. Notes are read at build time from the paths in
 NOTES_DIR=/path/to/vault/Notes
 ATTACHMENTS_DIR=/path/to/vault/Files
 EMBEDS_DIR=/path/to/vault/_Meta/Embed
+SOURCES_DIR=/path/to/vault/Sources
 ```
 
 Only `NOTES_DIR` is required. `ATTACHMENTS_DIR` enables image embeds, and
 `EMBEDS_DIR` enables transclusion-only snippets.
+
+## References
+
+The References page is generated from the notes in `SOURCES_DIR` into
+[`src/lib/references.gen.ts`](src/lib/references.gen.ts), which is committed.
+Each note's filename is its short form, and its text is the citation.
+
+- The pre-commit hook regenerates the file and stages it. `pnpm install` turns
+  the hook on. The hook does nothing when `SOURCES_DIR` is unset.
+- `pnpm run deploy` refuses to run when the committed file is out of date with
+  the vault. Run `pnpm references` and commit the result.
 
 ## Deploying
 
@@ -77,7 +90,7 @@ pnpm run deploy
 
 `wrangler login` is needed once per machine. `pnpm run deploy` refuses to run
 unless `NOTES_DIR` is set and every configured vault path exists, so it can't
-publish the demo notes by mistake.
+publish the demo notes by mistake. It also refuses a stale References page.
 
 ## Adding a route
 
