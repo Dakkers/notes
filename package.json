@@ -23,7 +23,8 @@
     "lint:check": "oxlint --config .config/oxlint.config.ts",
     "changeset": "changeset",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o dist/storybook"
+    "build-storybook": "storybook build -o dist/storybook",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@saintly-software/baritone": "1.0.0-alpha.8",
