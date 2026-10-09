@@ -69,8 +69,8 @@ export function demoNotes({
   // the client bundle only, so the emit step below skips the server build.
   let isSsrBuild = false;
   // The attachments actually referenced by the notes, captured on the last content
-  // render and emitted into the client bundle. Empty until `renderContent` runs.
-  let referenced: Attachment[] = [];
+  // render. Null until `renderContent` runs.
+  let referenced: Attachment[] | null = null;
 
   function readAll(fromDir: string): { fileName: string; raw: string }[] {
     return readdirSync(fromDir, { withFileTypes: true })
@@ -178,16 +178,16 @@ export function demoNotes({
 
     // Copy the referenced attachments into the client bundle as static assets, at
     // the content-hashed paths the rendered `<img>` tags point to. Only the client
-    // bundle serves static files, so the SSR build is skipped. `renderContent` has
-    // already run by this point (the content module is imported by the note route),
-    // so `referenced` is populated.
+    // bundle serves static files, so the SSR build is skipped. The content module is
+    // only loaded by the server bundle, so the client build renders it here.
     generateBundle() {
       // Prefer Vite 6+'s per-hook environment; fall back to the resolved-config flag.
       const envName = (this as { environment?: { name?: string } }).environment?.name;
       const isClient = envName === undefined ? !isSsrBuild : envName === "client";
       if (!isClient) return;
 
-      for (const att of referenced) {
+      if (referenced === null) renderContent();
+      for (const att of referenced ?? []) {
         this.emitFile({
           type: "asset",
           fileName: att.url.slice(1), // strip the leading "/" → "attachments/<hash><ext>"
