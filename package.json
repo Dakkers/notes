@@ -10,7 +10,7 @@
     "dev": "vite dev --config .config/vite.config.ts --port 3000",
     "build": "vite build --config .config/vite.config.ts",
     "preview": "pnpm run build && vite preview --config .config/vite.config.ts",
-    "deploy": "node .config/check-deploy-env.ts && pnpm run build && wrangler deploy",
+    "deploy": "node .config/check-deploy-env.ts && node .config/generate-references.ts --check && pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types --config .config/wrangler.jsonc",
     "generate-routes": "tsr generate",
     "references": "node .config/generate-references.ts",
