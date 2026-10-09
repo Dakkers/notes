@@ -1,12 +1,12 @@
 // Guards `pnpm run deploy` against shipping the `.demo` fixtures. Exits non-zero
 // unless `NOTES_DIR` is set in `.config/.env*` and every vault path that is set
-// (`NOTES_DIR`, `ATTACHMENTS_DIR`, `EMBEDS_DIR`) is an existing directory.
+// (`NOTES_DIR`, `ATTACHMENTS_DIR`, `EMBEDS_DIR`, `SOURCES_DIR`) is an existing directory.
 
 import { statSync } from "node:fs";
 
 import { loadEnv } from "vite";
 
-const VAULT_VARS = ["NOTES_DIR", "ATTACHMENTS_DIR", "EMBEDS_DIR"] as const;
+const VAULT_VARS = ["NOTES_DIR", "ATTACHMENTS_DIR", "EMBEDS_DIR", "SOURCES_DIR"] as const;
 
 const env = loadEnv("production", ".config", "");
 

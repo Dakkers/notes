@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { CSSProperties } from "react";
+import { toJsxRuntime } from "hast-util-to-jsx-runtime";
+import type { ComponentProps, CSSProperties } from "react";
+import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { Flex, Heading, Link, Text, vars } from "@saintly-software/baritone";
 
-import { SOURCES } from "../lib/references";
+import { SOURCES } from "../lib/references.gen";
 import referencesCss from "../styles/references.css?url";
 
 export const Route = createFileRoute("/references")({
@@ -18,6 +20,14 @@ const referenceTokens = {
   "--ref-muted": vars.text.color.neutral.low,
 } as CSSProperties;
 
+function ExternalLink({ href, children }: ComponentProps<"a">) {
+  return (
+    <Link render={<a />} href={href} target="_blank" rel="noreferrer">
+      {children}
+    </Link>
+  );
+}
+
 function References() {
   return (
     <Flex direction="column" gap="4" style={{ maxWidth: "48rem" }}>
@@ -29,10 +39,9 @@ function References() {
         </Text>
       </Flex>
 
-      {/* Two columns: the `[[short-form]]` a note cites by, then the full
-          citation (author, title as a `<cite>`, publication details). Each row
-          carries its short form as an `id`, so `/references#caplin-1998` scrolls
-          straight to it. Online sources link from the title. */}
+      {/* Two columns: the `[[short-form]]` a note cites by, then the
+          citation as written in the vault's `Sources` note. Each row carries its
+          short form as an `id`, so `/references#caplin-1998` scrolls to it. */}
       <table className="references-table" style={referenceTokens}>
         <thead>
           <tr>
@@ -53,25 +62,12 @@ function References() {
                 </Text>
               </td>
               <Text render={<td />}>
-                {source.author}.{" "}
-                <cite>
-                  {source.url !== undefined ? (
-                    // External destination, so this stays a plain anchor rather
-                    // than going through the root LinkProvider's router link.
-                    <Link href={source.url} target="_blank" rel="noreferrer">
-                      {source.title}
-                    </Link>
-                  ) : (
-                    source.title
-                  )}
-                </cite>
-                . {source.publication}
-                {source.isbn !== undefined && (
-                  <Text as="span" size="sm" saliency="low">
-                    {" "}
-                    ISBN {source.isbn}.
-                  </Text>
-                )}
+                {toJsxRuntime(source.citation, {
+                  Fragment,
+                  jsx,
+                  jsxs,
+                  components: { a: ExternalLink },
+                })}
               </Text>
             </tr>
           ))}

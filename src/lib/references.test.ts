@@ -3,7 +3,8 @@ import { join, resolve } from "node:path";
 import { loadEnv } from "vite";
 import { describe, expect, it } from "vitest";
 
-import { SOURCES } from "./references";
+import { parseSource } from "./references";
+import { SOURCES } from "./references.gen";
 
 // Where the notes come from, mirroring `.config/vite.config.ts`: the real vault via
 // `NOTES_DIR`/`EMBEDS_DIR` in `.config/.env.local` when present (so locally this
@@ -45,6 +46,35 @@ function citations(): { shortForm: string; file: string }[] {
   }
   return found;
 }
+
+describe("parseSource", () => {
+  it("drops the Bibliography backlink and keeps every citation line", () => {
+    const raw =
+      "Schoenberg, Arnold. _Fundamentals_. Faber, 1999.\n\n_ISBN 978-0571196586_\n\n[[Sources/Bibliography|Bibliography]]\n";
+    const source = parseSource("schoenberg-1999.md", raw);
+    expect(source?.shortForm).toBe("schoenberg-1999");
+    const paragraphs = source?.citation.children.filter(
+      (node) => node.type === "element" && node.tagName === "p",
+    );
+    expect(paragraphs).toHaveLength(2);
+    expect(JSON.stringify(source?.citation)).not.toContain("Bibliography");
+  });
+
+  it("renders markdown links and bare URLs as anchors", () => {
+    const source = parseSource(
+      "x.md",
+      "A. _B_, [site.com](https://site.com/). See https://other.org/.",
+    );
+    const json = JSON.stringify(source?.citation);
+    expect(json).toContain('"href":"https://site.com/"');
+    expect(json).toContain('"href":"https://other.org/"');
+  });
+
+  it("returns null for a note with no citation text", () => {
+    expect(parseSource("Bibliography.md", "")).toBeNull();
+    expect(parseSource("x.md", "[[Sources/Bibliography|Bibliography]]\n")).toBeNull();
+  });
+});
 
 describe("references table", () => {
   it("gives every source a unique short form", () => {
