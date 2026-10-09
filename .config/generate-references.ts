@@ -1,5 +1,5 @@
 // Regenerates `src/lib/references.gen.ts` from the vault's `Sources` folder
-// (`SOURCES_DIR` in `.config/.env*`).
+// (`SOURCES_DIR` in `.config/.env*`). Skips `Bibliography.md`, the vault's index.
 //
 //   --check     Write nothing; exit non-zero if the committed file is stale.
 //   --optional  Exit quietly when `SOURCES_DIR` is unset (for the pre-commit hook).
@@ -12,6 +12,7 @@ import { loadEnv } from "vite";
 import { parseSource, renderSourcesModule } from "../src/lib/references.ts";
 
 const OUTPUT = "src/lib/references.gen.ts";
+const IGNORED = new Set(["Bibliography.md"]);
 
 const args = new Set(process.argv.slice(2));
 const check = args.has("--check");
@@ -26,7 +27,7 @@ if (!SOURCES_DIR) {
 }
 
 const sources = readdirSync(SOURCES_DIR)
-  .filter((name) => name.endsWith(".md"))
+  .filter((name) => name.endsWith(".md") && !IGNORED.has(name))
   .flatMap((name) => parseSource(name, readFileSync(join(SOURCES_DIR, name), "utf8")) ?? []);
 const next = renderSourcesModule(sources);
 
