@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { notes } from "virtual:demo-notes";
 import { byTitle } from "../lib/notes/sort";
-import { tagIntent, visibleTags } from "../lib/notes/tags";
+import { tagIntent, tagLabel, visibleTags } from "../lib/notes/tags";
 
 // Stub notes (not written yet) are omitted from the listing and the tag filter;
 // they remain reachable via backlinks from the notes that reference them.
@@ -13,7 +13,7 @@ const sortedNotes = [...notes].filter((note) => !note.empty).sort(byTitle);
 
 const tagOptions = [...new Set(sortedNotes.flatMap((note) => visibleTags(note.tags)))]
   .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
-  .map((tag) => ({ value: tag, label: `#${tag}` }));
+  .map((tag) => ({ value: tag, label: `#${tagLabel(tag)}` }));
 
 const knownTags = new Set(tagOptions.map((option) => option.value));
 
@@ -95,7 +95,7 @@ function NotesIndex() {
                         intent={tagIntent(tag)}
                         render={<Link to="/notes" search={{ tags: [tag] }} />}
                       >
-                        {tag}
+                        {tagLabel(tag)}
                       </ChipList.Item>
                     ))}
                   />

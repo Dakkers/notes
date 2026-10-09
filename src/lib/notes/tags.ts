@@ -52,3 +52,16 @@ export function isHiddenTag(tag: string): boolean {
 export function visibleTags(tags: string[]): string[] {
   return tags.filter((tag) => !isHiddenTag(tag));
 }
+
+/**
+ * Human-readable label for `tag`. PascalCase and camelCase words within each
+ * namespace segment are split with spaces (`AudioEngineering` →
+ * `Audio Engineering`, `HTMLParser` → `HTML Parser`). The tag value itself
+ * MUST still be used for filtering and links.
+ */
+export function tagLabel(tag: string): string {
+  return tag
+    .split("/")
+    .map((segment) => segment.replace(/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/g, " "))
+    .join("/");
+}

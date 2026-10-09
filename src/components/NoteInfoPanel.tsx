@@ -4,7 +4,7 @@ import { ChipList, Divider, Flex, Text, vars } from "@saintly-software/baritone"
 import type { Root as HastRoot } from "hast";
 
 import type { Note } from "../lib/notes/types";
-import { tagIntent, visibleTags } from "../lib/notes/tags";
+import { tagIntent, tagLabel, visibleTags } from "../lib/notes/tags";
 import { formatWrittenAt } from "../lib/notes/timestamp";
 import { renderNoteHast } from "./NoteBody";
 import { RawMarkdownModal } from "./RawMarkdownModal";
@@ -48,7 +48,7 @@ export function NoteInfoPanel({
               intent={tagIntent(tag)}
               render={<Link to="/notes" search={{ tags: [tag] }} />}
             >
-              {tag}
+              {tagLabel(tag)}
             </ChipList.Item>
           ))}
         />

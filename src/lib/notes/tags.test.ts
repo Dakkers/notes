@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isHiddenTag, tagIntent, visibleTags } from "./tags.ts";
+import { isHiddenTag, tagIntent, tagLabel, visibleTags } from "./tags.ts";
 
 describe("isHiddenTag", () => {
   it("hides the Meta namespace root and any nesting beneath it", () => {
@@ -49,5 +49,26 @@ describe("tagIntent", () => {
   it("falls back to neutral for unmapped namespaces", () => {
     expect(tagIntent("🔗")).toBe("neutral");
     expect(tagIntent("Cooking")).toBe("neutral");
+  });
+});
+
+describe("tagLabel", () => {
+  it("splits PascalCase and camelCase words", () => {
+    expect(tagLabel("AudioEngineering")).toBe("Audio Engineering");
+    expect(tagLabel("musicTheory")).toBe("music Theory");
+  });
+
+  it("keeps acronyms together", () => {
+    expect(tagLabel("HTMLParser")).toBe("HTML Parser");
+    expect(tagLabel("Dev/SQL")).toBe("Dev/SQL");
+  });
+
+  it("splits each namespace segment independently", () => {
+    expect(tagLabel("AudioEngineering/MixBus")).toBe("Audio Engineering/Mix Bus");
+  });
+
+  it("leaves single words and non-letters untouched", () => {
+    expect(tagLabel("Music")).toBe("Music");
+    expect(tagLabel("🔗")).toBe("🔗");
   });
 });
